@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OpenWiki last update metadata",
+  "description": "Written to openwiki/.last-update.json only when wiki content changes.",
+  "type": "object",
+  "required": ["updatedAt", "command"],
+  "properties": {
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp of the successful run"
+    },
+    "command": {
+      "type": "string",
+      "enum": ["init", "update"],
+      "description": "Which mode produced this update"
+    },
+    "gitHead": {
+      "type": "string",
+      "description": "Git commit SHA at run completion (from git rev-parse HEAD). Preferred anchor for the next update run."
+    },
+    "model": {
+      "type": "string",
+      "description": "Optional harness or model identifier, if available"
+    }
+  },
+  "examples": [
+    {
+      "updatedAt": "2026-07-05T20:00:00.000Z",
+      "command": "init",
+      "gitHead": "abc123def456789",
+      "model": "agent"
+    }
+  ]
+}

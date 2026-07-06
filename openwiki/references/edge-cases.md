@@ -43,7 +43,8 @@ Do not split content into separate topic pages unless there is enough distinct, 
 
 - Write only when wiki **content** changed (init or update that modified files).
 - Do **not** write for no-op updates or chat mode.
-- Compare content before and after: if identical, skip metadata update.
+- **Verify with a content snapshot:** hash `openwiki/` before and after the run, excluding `.last-update.json`. If fingerprints match, skip metadata even if files were read or a plan was drafted.
+- Use [scripts/snapshot-wiki-content.sh](../scripts/snapshot-wiki-content.sh) from the installed skill path with cwd set to the target repository, or equivalent manual comparison without shell.
 
 ### Malformed or missing prior metadata
 

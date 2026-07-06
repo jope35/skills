@@ -2,7 +2,7 @@
 name: openwiki
 description: Generate and maintain repository documentation for humans and coding agents under openwiki/. Use when asked to initialize wiki docs, update existing openwiki documentation, document a codebase, create agent instructions from a repo, refresh docs after code changes, or run OpenWiki init/update/chat workflows.
 license: MIT
-compatibility: Requires read/write access to the target repository and git. Works with any agent harness that supports filesystem and shell tools.
+compatibility: Requires read/write access to the target repository, git, and bash. jq is optional (used by helper scripts; grep/sed fallback if absent).
 metadata:
   author: jope35
   version: "1.1.0"
@@ -94,8 +94,8 @@ Use whatever tools your environment provides. Map these **intents** to local equ
 
 When the repository has multiple substantial domains, delegate **read-only** research in parallel if your harness supports it.
 
-| Repository | Delegates |
-|------------|-----------|
+| Repository size | Delegates |
+|-----------------|-----------|
 | Large or unfamiliar | 1–2 |
 | Small/medium with independent domains, or user asks for deeper research | 3–4 |
 
@@ -121,7 +121,15 @@ Use git to explain **why** code exists, not only **what** exists.
 
 **Update:** Always inspect commits since the previous successful run. Prefer `gitHead` from `openwiki/.last-update.json`; fall back to `updatedAt` if no `gitHead`. Use `git status` and `git diff` for uncommitted changes.
 
-Gather git context at the start of init/update. Run [scripts/gather-git-context.sh](scripts/gather-git-context.sh) when shell is available, or equivalent commands from [references/modes.md](references/modes.md). If shell is unavailable during update, infer changes from filesystem timestamps, source inspection, and existing docs.
+Gather git context at the start of init/update. When shell is available, run helper scripts from the **installed skill directory** with the **target repository as the working directory**:
+
+```bash
+cd /path/to/target-repo
+bash /path/to/installed-skill/scripts/gather-git-context.sh init
+bash /path/to/installed-skill/scripts/gather-git-context.sh update
+```
+
+If the skill path is unknown, use equivalent commands from [references/modes.md](references/modes.md). If shell is unavailable during update, infer changes from filesystem timestamps, source inspection, and existing docs.
 
 ---
 
@@ -173,13 +181,14 @@ Section quality rules, required structure, and edge cases: [references/edge-case
 
 Assume `openwiki/` has no useful documentation yet.
 
-1. Gather git context (recent 20 commits).
-2. Build repository inventory.
-3. Optionally delegate read-only discovery.
-4. Write `openwiki/_plan.md`, then `quickstart.md` and section pages.
-5. Update top-level agent instruction files.
-6. Delete `_plan.md`.
-7. Write `.last-update.json` if content was created.
+1. Record a **content snapshot** hash before writing (see [Metadata file](#metadata-file)).
+2. Gather git context (recent 20 commits).
+3. Build repository inventory.
+4. Optionally delegate read-only discovery.
+5. Write `openwiki/_plan.md`, then `quickstart.md` and section pages.
+6. Update top-level agent instruction files.
+7. Delete `_plan.md`.
+8. Write `.last-update.json` only if the post-run snapshot differs from the pre-run snapshot.
 
 **Constraints:** At most **8 pages** unless the repo is clearly tiny. Do not document every source file.
 
@@ -191,13 +200,14 @@ Quickstart skeleton: [assets/quickstart-skeleton.md](assets/quickstart-skeleton.
 
 Inspect existing `openwiki/` before editing.
 
-1. Read `.last-update.json` if present.
-2. Gather git context since last successful run.
-3. Build a **docs impact plan**: `source change → docs affected → edit needed → why`.
-4. Edit only pages tied to relevant changes. No formatting-only edits.
-5. Refresh agent instruction files only if the OpenWiki section is missing or stale.
-6. Delete `_plan.md`.
-7. Update `.last-update.json` **only if** wiki content changed.
+1. Record a **content snapshot** hash before editing (see [Metadata file](#metadata-file)).
+2. Read `.last-update.json` if present.
+3. Gather git context since last successful run.
+4. Build a **docs impact plan**: `source change → docs affected → edit needed → why`.
+5. Edit only pages tied to relevant changes. No formatting-only edits.
+6. Refresh agent instruction files only if the OpenWiki section is missing or stale.
+7. Delete `_plan.md`.
+8. Update `.last-update.json` **only if** the post-run snapshot differs from the pre-run snapshot.
 
 **Soft diff budget:** If fewer than ~5 source files changed, update at most 1–2 wiki pages. Avoid `quickstart.md` unless top-level behavior, setup, or navigation changed. If more than 3 pages seem needed, reconsider before broad edits.
 
@@ -217,7 +227,22 @@ Full update rules: [references/modes.md](references/modes.md)
 
 ## Metadata file
 
-Write `openwiki/.last-update.json` only when wiki **content** changed.
+Write `openwiki/.last-update.json` only when wiki **content** actually changed — not on no-op runs.
+
+### Content snapshot check
+
+Before editing in init/update, record a fingerprint of `openwiki/` **excluding** `.last-update.json`. After all edits, record again. Write metadata **only if the fingerprints differ**.
+
+When shell is available, use the helper from the installed skill path with cwd set to the target repo:
+
+```bash
+cd /path/to/target-repo
+bash /path/to/installed-skill/scripts/snapshot-wiki-content.sh
+```
+
+Compare the printed SHA-256 hex strings. If identical, skip `.last-update.json` even if you inspected files.
+
+Without shell, compare a manual inventory of `openwiki/` file paths and contents before vs after, excluding `.last-update.json` and `_plan.md`.
 
 Schema and example: [assets/last-update.schema.json](assets/last-update.schema.json)
 
@@ -235,7 +260,7 @@ If prior metadata is missing or malformed, treat as no previous update.
 - [ ] Top-level agent instruction files have a correct OpenWiki section
 - [ ] No secrets documented; no edits outside `openwiki/` except instruction-file section
 - [ ] Update: edits tied to impact plan; no-op acknowledged if nothing needed
-- [ ] `.last-update.json` written only if content changed
+- [ ] `.last-update.json` written only if pre/post content snapshots differ
 
 ---
 

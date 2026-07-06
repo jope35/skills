@@ -39,5 +39,13 @@ openwiki/
 ├── SKILL.md
 ├── assets/          # Templates and schemas
 ├── references/      # Detailed mode and edge-case docs
-└── scripts/         # Git context helper
+└── scripts/         # Git context + content snapshot helpers
+```
+
+Helper scripts live in the skill package. Run them from the **installed skill path** with **cwd set to the target repository**:
+
+```bash
+cd /path/to/target-repo
+bash /path/to/installed-skill/scripts/gather-git-context.sh update
+bash /path/to/installed-skill/scripts/snapshot-wiki-content.sh
 ```

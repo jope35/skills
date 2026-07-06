@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 # Gather git context for OpenWiki init/update runs.
-# Usage:
-#   ./gather-git-context.sh init
-#   ./gather-git-context.sh update [metadata-file]
 #
-# metadata-file defaults to openwiki/.last-update.json
+# Run from the TARGET REPOSITORY root. Pass the script path from the
+# installed skill directory, for example:
+#   cd /path/to/target-repo
+#   bash /path/to/installed-skill/scripts/gather-git-context.sh init
+#   bash /path/to/installed-skill/scripts/gather-git-context.sh update
+#
+# metadata-file defaults to openwiki/.last-update.json (relative to cwd)
 
 set -euo pipefail
 
@@ -13,8 +16,28 @@ METADATA_FILE="${2:-openwiki/.last-update.json}"
 
 if [[ "$MODE" != "init" && "$MODE" != "update" ]]; then
   echo "Usage: $0 <init|update> [metadata-file]" >&2
+  echo "Run with cwd set to the target repository root." >&2
   exit 1
 fi
+
+json_field() {
+  local file="$1"
+  local field="$2"
+
+  if [[ ! -f "$file" ]]; then
+    return 0
+  fi
+
+  if command -v jq >/dev/null 2>&1; then
+    jq -r ".${field} // empty" "$file" 2>/dev/null || true
+    return 0
+  fi
+
+  grep -E "\"${field}\"[[:space:]]*:" "$file" 2>/dev/null \
+    | head -1 \
+    | sed -E 's/.*:[[:space:]]*"([^"]*)".*/\1/' \
+    || true
+}
 
 section() {
   local title="$1"
@@ -34,23 +57,8 @@ if [[ "$MODE" == "init" ]]; then
     git log --max-count=20 --name-status --oneline
 else
   if [[ -f "$METADATA_FILE" ]]; then
-    GIT_HEAD=$(python3 -c "
-import json, sys
-try:
-    d = json.load(open('$METADATA_FILE'))
-    print(d.get('gitHead', ''))
-except Exception:
-    print('')
-" 2>/dev/null || echo "")
-
-    UPDATED_AT=$(python3 -c "
-import json, sys
-try:
-    d = json.load(open('$METADATA_FILE'))
-    print(d.get('updatedAt', ''))
-except Exception:
-    print('')
-" 2>/dev/null || echo "")
+    GIT_HEAD="$(json_field "$METADATA_FILE" gitHead)"
+    UPDATED_AT="$(json_field "$METADATA_FILE" updatedAt)"
 
     if [[ -n "$GIT_HEAD" ]]; then
       section "git log ${GIT_HEAD}..HEAD --name-status --oneline" \

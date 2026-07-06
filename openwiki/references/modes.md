@@ -6,20 +6,21 @@
 
 ### Workflow
 
-1. Gather git context (recent 20 commits).
-2. Build repository inventory:
+1. Record a **content snapshot** of `openwiki/` (excluding `.last-update.json`) before writing.
+2. Gather git context (recent 20 commits).
+3. Build repository inventory:
    - existing docs, README, `docs/`, `SKILL.md` files
    - graph/app entrypoints, package/config files
    - major domain folders, tests/evals, data/schema files
    - skill/playbook files, operational scripts
-3. Use git evidence to understand how important files and workflows evolved. Prefer recent commits and targeted `git blame` / `git show` on high-signal files.
-4. If substantial existing docs exist, create a wiki as an opinionated map and synthesis layer — summarize and link rather than duplicate.
-5. Optionally delegate 1–4 read-only workers for parallel discovery.
-6. Write `openwiki/_plan.md` with planned pages and evidence.
-7. Create `openwiki/quickstart.md` first, then linked section pages.
-8. Update top-level agent instruction files with the OpenWiki reference section.
-9. Delete `openwiki/_plan.md`.
-10. Write `openwiki/.last-update.json` if wiki content was created.
+4. Use git evidence to understand how important files and workflows evolved. Prefer recent commits and targeted `git blame` / `git show` on high-signal files.
+5. If substantial existing docs exist, create a wiki as an opinionated map and synthesis layer — summarize and link rather than duplicate.
+6. Optionally delegate 1–4 read-only workers for parallel discovery.
+7. Write `openwiki/_plan.md` with planned pages and evidence.
+8. Create `openwiki/quickstart.md` first, then linked section pages.
+9. Update top-level agent instruction files with the OpenWiki reference section.
+10. Delete `openwiki/_plan.md`.
+11. Write `openwiki/.last-update.json` only if the post-run content snapshot differs from the pre-run snapshot.
 
 ### Init constraints
 
@@ -35,21 +36,22 @@
 
 ### Workflow
 
-1. Read `openwiki/.last-update.json` if it exists.
-2. Gather git context scoped to changes since the last successful run.
-3. Build a **docs impact plan**:
+1. Record a **content snapshot** of `openwiki/` (excluding `.last-update.json`) before editing.
+2. Read `openwiki/.last-update.json` if it exists.
+3. Gather git context scoped to changes since the last successful run.
+4. Build a **docs impact plan**:
 
    ```
    source change → docs affected → edit needed → why
    ```
 
-4. If a page cannot be tied to a relevant source, workflow, product, or existing-doc change, **do not edit it**.
-5. Optionally delegate read-only workers for changed domains.
-6. Write `openwiki/_plan.md` with planned surgical edits.
-7. Apply only necessary edits per the impact plan.
-8. Refresh agent instruction files only if the OpenWiki section is missing or semantically stale.
-9. Delete `openwiki/_plan.md`.
-10. Update `.last-update.json` **only if** wiki content actually changed.
+5. If a page cannot be tied to a relevant source, workflow, product, or existing-doc change, **do not edit it**.
+6. Optionally delegate read-only workers for changed domains.
+7. Write `openwiki/_plan.md` with planned surgical edits.
+8. Apply only necessary edits per the impact plan.
+9. Refresh agent instruction files only if the OpenWiki section is missing or semantically stale.
+10. Delete `openwiki/_plan.md`.
+11. Update `.last-update.json` **only if** the post-run content snapshot differs from the pre-run snapshot.
 
 ### Surgical edit rules
 
@@ -138,4 +140,12 @@ git log --since "<updatedAt ISO timestamp>" --name-status --oneline
 
 Emit: "No prior OpenWiki update timestamp was found." Then use the init-style recent-20 log.
 
-Use [scripts/gather-git-context.sh](../scripts/gather-git-context.sh) to run the appropriate set automatically.
+Use helper scripts from the **installed skill directory** with **cwd set to the target repository**:
+
+```bash
+cd /path/to/target-repo
+bash /path/to/installed-skill/scripts/gather-git-context.sh init
+bash /path/to/installed-skill/scripts/gather-git-context.sh update
+```
+
+Or run equivalent commands below manually.

@@ -2,7 +2,7 @@
 name: openwiki
 description: Generate and maintain repository documentation for humans and coding agents under openwiki/. Use when asked to initialize wiki docs, update existing openwiki documentation, document a codebase, create agent instructions from a repo, refresh docs after code changes, or run OpenWiki init/update/chat workflows.
 license: MIT
-compatibility: Requires read/write access to the target repository, git, and bash. jq is optional (used by helper scripts; grep/sed fallback if absent).
+compatibility: Requires read/write access to the target repository, git, bash, and python3 (for helper script JSON parsing).
 metadata:
   author: jope35
   version: "1.1.0"

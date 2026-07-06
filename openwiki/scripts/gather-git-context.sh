@@ -28,15 +28,19 @@ json_field() {
     return 0
   fi
 
-  if command -v jq >/dev/null 2>&1; then
-    jq -r ".${field} // empty" "$file" 2>/dev/null || true
-    return 0
-  fi
+  python3 -c "
+import json
+import sys
 
-  grep -E "\"${field}\"[[:space:]]*:" "$file" 2>/dev/null \
-    | head -1 \
-    | sed -E 's/.*:[[:space:]]*"([^"]*)".*/\1/' \
-    || true
+try:
+    with open(sys.argv[1], encoding='utf-8') as handle:
+        data = json.load(handle)
+    value = data.get(sys.argv[2], '')
+    if isinstance(value, str):
+        print(value)
+except Exception:
+    pass
+" "$file" "$field" 2>/dev/null || true
 }
 
 section() {

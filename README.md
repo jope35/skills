@@ -38,11 +38,13 @@ Adapted from [langchain-ai/openwiki](https://github.com/langchain-ai/openwiki). 
 
 ## Validate Plan
 
-[`validate-plan/SKILL.md`](./validate-plan/SKILL.md) — Adversarially validate plans, specs, RFCs, and design documents, then return concrete changes that improve robustness.
+[`validate-plan/SKILL.md`](./validate-plan/SKILL.md) — Adversarially validate plans, specs, RFCs, and design documents, then return small, meaningful changes that improve robustness.
 
 **Triggers:** validate a plan, stress-test a spec, challenge design assumptions, de-risk an RFC, verify architecture or rollout assumptions against code and official docs.
 
 **Evidence sources:** local source/docs, Exa, Context7, Ref, official documentation, standards, and `llms.txt` documentation indexes where available.
+
+**Output:** concrete plan edits, including a verification/validation section that explains how to test the plan's output.
 
 **Layout (Agent Skills spec):**
 

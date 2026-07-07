@@ -29,7 +29,8 @@ Act like a skeptical principal engineer validating the design before it becomes 
 2. **Seek disconfirming evidence.** Try to nullify risky assumptions, not merely support them.
 3. **Ground findings in evidence.** Use source code, local docs, official documentation, standards, release notes, and vendor references. Avoid uncited claims for external behavior.
 4. **Return changes, not vibes.** Every material risk should become a concrete edit, test, mitigation, invariant, rollback step, or open decision in the plan.
-5. **Separate certainty from suspicion.** Label unsupported concerns as hypotheses and explain what evidence would resolve them.
+5. **Prefer small but meaningful changes.** Improve the plan with the smallest edits that materially reduce risk, clarify ownership, or make validation possible. Avoid broad rewrites, new architecture, or process ceremony unless the evidence shows they are necessary.
+6. **Separate certainty from suspicion.** Label unsupported concerns as hypotheses and explain what evidence would resolve them.
 
 ## Evidence sources and tool mapping
 
@@ -128,6 +129,29 @@ Every significant finding should become one or more actionable changes:
 - Add test coverage: unit, integration, migration, load, chaos/failure, permission, or end-to-end tests.
 - Split an oversized or coupled design into smaller phases when that reduces risk.
 
+Keep changes small but meaningful:
+
+- Prefer inserting a missing invariant, test, rollout gate, or version constraint over rewriting an entire section.
+- Preserve the author's intent and terminology when they are sound.
+- Combine related edits only when they address the same failure mode.
+- Do not add speculative safeguards that have no clear risk, owner, or verification path.
+- If a large redesign appears necessary, explain the minimum evidence-backed reason and identify the smallest viable rework.
+
+### 6. Require a verification and validation section
+
+The target plan should include a dedicated section named **Verification and validation**, **Testing and validation**, or an equivalent heading. If the plan lacks one, add it to the change set. If it has one, validate that it is specific enough to prove the plan's output works.
+
+That section should answer "How do we test this?" with concrete checks, not generic confidence statements:
+
+- **Success criteria:** observable outcomes, acceptance criteria, SLOs, data-quality thresholds, or user-visible behavior that define done.
+- **Automated tests:** unit, integration, contract, migration, end-to-end, permission, regression, and performance tests as appropriate.
+- **Manual or exploratory validation:** realistic scenarios, edge cases, admin/operator workflows, and negative tests.
+- **Data validation:** before/after counts, reconciliation queries, invariants, sampling, backfill validation, idempotency checks, and corruption/loss detection.
+- **Operational validation:** metrics, logs, traces, dashboards, alerts, synthetic checks, load tests, failure injection, and rollback drills.
+- **Security/compliance validation:** authorization tests, audit log checks, secret handling, data residency, privacy review, and abuse cases where relevant.
+- **Rollout gates:** preflight checks, canary criteria, feature-flag checks, hold points, abort thresholds, and rollback verification.
+- **Ownership:** who runs each check, where results are recorded, and which failures block launch.
+
 If the user asked you to edit the document, apply the changes after validating. Otherwise, output a comprehensive change set the author can apply.
 
 ## Finding statuses
@@ -162,13 +186,18 @@ Return a structured validation report with these sections:
      - **Validation:** test, check, experiment, or rollout gate that proves the change works.
      - **Severity:** Critical, High, Medium, or Low.
 
-4. **Assumption validation ledger**
+4. **Required verification and validation section**
+   - Provide exact wording to add to the plan, or precise edits to the existing testing/validation section.
+   - Include success criteria, automated tests, manual validation, operational checks, rollout gates, and ownership.
+   - Keep the section scoped to tests that prove the plan's intended output, not unrelated quality wishes.
+
+5. **Assumption validation ledger**
    - Table with: assumption, status, evidence, risk if wrong, required plan update.
 
-5. **Open questions and evidence gaps**
+6. **Open questions and evidence gaps**
    - Only include questions that block confidence or meaningfully affect design robustness.
 
-6. **Suggested robustness additions**
+7. **Suggested robustness additions**
    - Tests, observability, rollout/rollback, security, data integrity, performance, and operational improvements that should be added even if no single assumption was nullified.
 
 ## Citation requirements
@@ -186,4 +215,6 @@ Return a structured validation report with these sections:
 - [ ] `llms.txt` indexes were attempted for relevant documentation sites when appropriate.
 - [ ] Findings distinguish verified, nullified, unsupported, and underspecified assumptions.
 - [ ] Output includes concrete edits to the plan, not only observations.
+- [ ] Changes are small enough to preserve sound plan intent while materially reducing risk.
+- [ ] The plan includes a concrete verification/validation section that explains how to test the plan's output.
 - [ ] Robustness additions cover rollout, rollback, tests, observability, security, and data integrity where relevant.

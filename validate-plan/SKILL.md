@@ -45,6 +45,16 @@ Use the best evidence available in the current harness. Map these intents to loc
 | Validate an `llms.txt`-aware documentation site | Fetch `/llms.txt`, use it as the docs index, then fetch the linked markdown pages most relevant to the assumptions |
 | Validate standards or protocols | Standards documents, official specs, maintainers' references |
 
+### MCP and external documentation discipline
+
+Before validating external assumptions, discover which documentation and research tools are available in the current harness. Use any relevant MCP or web/documentation fetcher, such as Exa, Context7, Ref, direct URL fetch, or vendor-specific docs tools.
+
+- Prefer Context7, Ref, typed definitions, or official API references for library and framework behavior.
+- Prefer Exa, direct fetch, official product docs, release notes, and `llms.txt` indexes for current vendor/platform behavior.
+- Match docs to the plan's stated version, cloud, region, deployment model, and product tier when those details matter.
+- If a tool, URL, or documentation source is unavailable, blocked, or inconclusive, flag the affected assumptions as evidence gaps. Do not silently skip external validation.
+- Fetch full source pages for decisive claims. Search snippets can identify leads, but they are not enough for final evidence.
+
 ### `llms.txt` documentation workflow
 
 When a plan depends on documentation hosted on a known domain, first try the LLM-friendly index if the site may support it:
@@ -98,6 +108,7 @@ For each high- or medium-risk assumption:
 3. Check version-specific behavior. Do not assume latest docs apply if the plan names an older version.
 4. Look for hard constraints: unsupported operations, quotas, consistency guarantees, auth requirements, regional availability, pricing boundaries, deprecations, and migration limitations.
 5. Record whether evidence verifies, weakens, nullifies, or fails to address the assumption.
+6. Track blocked checks separately from validated assumptions so the final report clearly shows what could not be verified.
 
 Do not overfit to snippets. Fetch the full relevant page or source file when a snippet determines a finding.
 
@@ -194,10 +205,14 @@ Return a structured validation report with these sections:
 5. **Assumption validation ledger**
    - Table with: assumption, status, evidence, risk if wrong, required plan update.
 
-6. **Open questions and evidence gaps**
+6. **Evidence coverage and blocked checks**
+   - List unavailable MCPs, inaccessible URLs, missing docs, version ambiguity, or local evidence that could not be inspected.
+   - For each gap, name the affected assumption and whether the gap blocks implementation or only reduces confidence.
+
+7. **Open questions**
    - Only include questions that block confidence or meaningfully affect design robustness.
 
-7. **Suggested robustness additions**
+8. **Suggested robustness additions**
    - Tests, observability, rollout/rollback, security, data integrity, performance, and operational improvements that should be added even if no single assumption was nullified.
 
 ## Citation requirements
@@ -213,6 +228,7 @@ Return a structured validation report with these sections:
 - [ ] Explicit and implicit assumptions were extracted.
 - [ ] High-risk assumptions were checked against source or official external evidence.
 - [ ] `llms.txt` indexes were attempted for relevant documentation sites when appropriate.
+- [ ] Relevant MCP/documentation tools were used when available, and blocked or unavailable checks were flagged.
 - [ ] Findings distinguish verified, nullified, unsupported, and underspecified assumptions.
 - [ ] Output includes concrete edits to the plan, not only observations.
 - [ ] Changes are small enough to preserve sound plan intent while materially reducing risk.

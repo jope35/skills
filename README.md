@@ -89,6 +89,8 @@ External skills are direct-vendored into this repo so installers see ordinary sk
 
 The sync script copies each listed skill, writes `.source.json` with the upstream commit, and refreshes the generated `Included skills` count at the top of this README.
 
+GitHub Actions also runs this sync on a schedule every 11 hours and opens an automated pull request when vendored skills change.
+
 **Layout (Agent Skills spec):**
 
 ```

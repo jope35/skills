@@ -1,0 +1,39 @@
+name: Sync external skills
+
+on:
+  schedule:
+    - cron: "0 */11 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    name: Sync vendored external skills
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+
+      - name: Sync external skills
+        run: scripts/sync-external-skills.py
+
+      - name: Create pull request for updates
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: chore/sync-external-skills
+          delete-branch: true
+          commit-message: Sync external skills
+          title: Sync external skills
+          body: |
+            Automated update from `scripts/sync-external-skills.py`.
+
+            This refreshes vendored skills listed in `external-skills.json` and updates the generated README skill index.

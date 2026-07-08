@@ -84,7 +84,7 @@ External skills are direct-vendored into this repo so installers see ordinary sk
 2. Run:
 
    ```bash
-   scripts/sync-external-skills.py
+   uv run --locked scripts/sync-external-skills.py
    ```
 
 The sync script copies each listed skill, writes `.source.json` with the upstream commit, and refreshes the generated `Included skills` count at the top of this README.

@@ -23,8 +23,13 @@ jobs:
         with:
           python-version: "3.x"
 
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
       - name: Sync external skills
-        run: scripts/sync-external-skills.py
+        run: uv run --locked scripts/sync-external-skills.py
 
       - name: Create pull request for updates
         uses: peter-evans/create-pull-request@v7

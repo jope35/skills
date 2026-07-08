@@ -3,17 +3,15 @@
 
 from __future__ import annotations
 
-import argparse
 import json
 import shutil
 import subprocess
-import sys
 import tempfile
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_MANIFEST = ROOT / "external-skills.json"
+MANIFEST = ROOT / "external-skills.json"
 README = ROOT / "README.md"
 START_MARKER = "<!-- skills:index:start -->"
 END_MARKER = "<!-- skills:index:end -->"
@@ -31,12 +29,12 @@ def run(command: list[str], cwd: Path | None = None) -> str:
     return result.stdout.strip()
 
 
-def load_manifest(path: Path) -> list[dict[str, str]]:
-    with path.open(encoding="utf-8") as file:
+def load_manifest() -> list[dict[str, str]]:
+    with MANIFEST.open(encoding="utf-8") as file:
         entries = json.load(file)
 
     if not isinstance(entries, list):
-        raise ValueError(f"{path} must contain a JSON array")
+        raise ValueError(f"{MANIFEST} must contain a JSON array")
 
     required_fields = {"name", "repo", "ref", "sourcePath", "targetPath"}
     for index, entry in enumerate(entries):
@@ -152,26 +150,14 @@ def update_readme() -> None:
     README.write_text(content, encoding="utf-8")
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Vendor external Agent Skills and refresh the README skill index."
-    )
-    parser.add_argument(
-        "--manifest",
-        type=Path,
-        default=DEFAULT_MANIFEST,
-        help="Path to the external skills manifest.",
-    )
-    args = parser.parse_args()
-
-    entries = load_manifest(args.manifest)
+def main() -> None:
+    entries = load_manifest()
     with tempfile.TemporaryDirectory(prefix="skills-sync-") as temp_dir:
         temp_root = Path(temp_dir)
         for entry in entries:
             sync_entry(entry, temp_root)
     update_readme()
-    return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

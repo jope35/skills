@@ -8,6 +8,7 @@ metadata:
   version: "2.0.0"
   source: https://github.com/langchain-ai/openwiki
   upstream_version: "0.2.0"
+  upstream_sha: d4e94ab513ab13908c6b61346b23dc17bbd59b1f
   output_mode: repository
 ---
 

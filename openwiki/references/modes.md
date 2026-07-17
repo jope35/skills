@@ -1,146 +1,147 @@
-# OpenWiki modes — detailed workflows
+# OpenWiki code mode — detailed workflows
 
-## Init mode
+These workflows implement the repository output mode from OpenWiki 0.2.0. The target repository is the runtime root and generated pages live under `openwiki/`.
 
-**Assume `openwiki/` does not yet contain useful documentation.**
+## Shared setup
+
+Before init or update:
+
+1. Run from the target repository root.
+2. Record a content snapshot of `openwiki/`, excluding `.last-update.json`.
+3. Read `openwiki/INSTRUCTIONS.md` when present. It is the user-authored scope brief; do not edit it during routine runs.
+4. Inspect existing wiki structure and metadata.
+5. Gather git status, HEAD, relevant history, and working-tree changes.
+6. Create an OKF-compliant `openwiki/_plan.md` after discovery and before final writes.
+7. Do not create or edit deterministic `index.md` files.
+8. Do not create or edit `AGENTS.md` or `CLAUDE.md`; OpenWiki's CLI manages its own marked snippets.
+
+## Init
+
+Assume `openwiki/` does not yet contain useful generated documentation.
 
 ### Workflow
 
-1. Record a **content snapshot** of `openwiki/` (excluding `.last-update.json`) before writing.
-2. Gather git context (recent 20 commits).
-3. Build repository inventory:
-   - existing docs, README, `docs/`, `SKILL.md` files
-   - graph/app entrypoints, package/config files
-   - major domain folders, tests/evals, data/schema files
-   - skill/playbook files, operational scripts
-4. Use git evidence to understand how important files and workflows evolved. Prefer recent commits and targeted `git blame` / `git show` on high-signal files.
-5. If substantial existing docs exist, create a wiki as an opinionated map and synthesis layer — summarize and link rather than duplicate.
-6. Optionally delegate 1–4 read-only workers for parallel discovery.
-7. Write `openwiki/_plan.md` with planned pages and evidence.
-8. Create `openwiki/quickstart.md` first, then linked section pages.
-9. Update top-level agent instruction files with the OpenWiki reference section.
-10. Delete `openwiki/_plan.md`.
-11. Write `openwiki/.last-update.json` only if the post-run content snapshot differs from the pre-run snapshot.
+1. Gather compact git context with the helper (defaults to the latest 15 commits).
+2. Build a repository inventory:
+   - existing docs, README files, `docs/`, runbooks, and `SKILL.md` files
+   - application and graph entrypoints, package/config files, routing
+   - major domains, data/schema files, integrations, tests/evals
+   - operational scripts, playbooks, and extension points
+3. Use targeted `git show` or `git blame` to understand important decisions.
+4. If substantial docs already exist, make the wiki an opinionated map and synthesis layer rather than a duplicate.
+5. Optionally delegate read-only discovery for independent domains.
+6. Write `_plan.md` with intended concepts, evidence, questions, and relationship triples.
+7. Create `quickstart.md` first, then the smallest useful set of linked concept pages.
+8. Add OKF front matter and evidence-backed semantic links.
+9. Put deferred real areas in `quickstart.md` under `## Backlog`.
+10. Delete `_plan.md`.
+11. Write `.last-update.json` only if the final content snapshot differs from the initial snapshot.
 
 ### Init constraints
 
-- At most **8 documentation pages** unless the repository is clearly tiny.
-- Do not document every source file. Cover architecture, workflows, domain concepts, data models, integrations, operations, tests, and extension points at the right level of detail.
-- Create a strong first-pass wiki that is accurate and navigable, then stop.
+- Use at most 8 generated documentation pages unless the repository is clearly tiny.
+- Do not document every source file.
+- For repositories with about 10 or fewer primary source files, prefer quickstart plus at most 1–2 supporting pages.
+- Every identified area must be documented or backlogged with an area name, source anchor, and reason.
 
----
+## Update
 
-## Update mode
-
-**Inspect existing `openwiki/` before editing.**
+Inspect existing `openwiki/` before editing.
 
 ### Workflow
 
-1. Record a **content snapshot** of `openwiki/` (excluding `.last-update.json`) before editing.
-2. Read `openwiki/.last-update.json` if it exists.
-3. Gather git context scoped to changes since the last successful run.
-4. Build a **docs impact plan**:
+1. Read `quickstart.md`, including `## Backlog`, and `.last-update.json`.
+2. Gather compact git context with the helper. Read the `pre-noop` line first.
+3. If `pre-noop` starts with `skip —` and the user did not request a specific documentation change, stop immediately: do not invent edits, do not write metadata, and report that the wiki is current.
+4. Otherwise gather commits since `gitHead`; when prior metadata has no `gitHead`, fall back to `updatedAt`, then recent history.
+5. Include uncommitted changes from status and worktree sections.
+6. Build a docs impact plan:
 
+   ```text
+   source change -> docs affected -> edit needed -> why
    ```
-   source change → docs affected → edit needed → why
-   ```
 
-5. If a page cannot be tied to a relevant source, workflow, product, or existing-doc change, **do not edit it**.
-6. Optionally delegate read-only workers for changed domains.
-7. Write `openwiki/_plan.md` with planned surgical edits.
-8. Apply only necessary edits per the impact plan.
-9. Refresh agent instruction files only if the OpenWiki section is missing or semantically stale.
-10. Delete `openwiki/_plan.md`.
-11. Update `.last-update.json` **only if** the post-run content snapshot differs from the pre-run snapshot.
+7. If a page cannot be tied to a relevant source, workflow, product, or authoritative-doc change, do not edit it.
+8. Optionally delegate read-only research for changed domains.
+9. Write `_plan.md` with only the planned surgical edits and affected relationships.
+10. Apply necessary factual and graph changes, including removing obsolete claims.
+11. Promote a backlog entry when recent changes touch it or spare documentation budget permits; remove the entry once documented.
+12. Delete `_plan.md`.
+13. Update `.last-update.json` only when the final content snapshot differs.
 
-### Surgical edit rules
+### Surgical rules
 
-- Preserve useful existing structure and wording when accurate.
-- Prefer replacing one stale sentence over adding new paragraphs.
-- Only edit pages that are inaccurate, incomplete, or misleading due to recent changes.
-- Keep each concept in one canonical page. Other pages: brief mention or link only.
-- **No formatting-only edits.** Do not reformat tables, normalize blank lines, reorder source lists, or polish wording unless accuracy requires it.
-- Do not update Source Map sections, git evidence lists, or generic "things to watch" sections unless materially wrong due to source changes.
-- Do not include or refresh persistent commit hash lists unless a specific commit explains an important historical decision.
+- Preserve useful structure and wording when accurate.
+- Prefer replacing one stale sentence over adding broad prose.
+- Keep each concept in one canonical page; use brief links elsewhere.
+- Do not make formatting-only edits.
+- Do not normalize tables, blank lines, wrapping, or source-list order unless the surrounding content must change.
+- Do not refresh source maps, generic watchlists, or git evidence lists unless materially wrong.
+- Do not add or refresh commit hash lists unless one commit explains an important decision.
+- Correct OKF front matter on a page when that page is already being substantively updated; do not churn every page's metadata.
 
 ### Soft diff budget
 
-| Source files changed | Wiki pages to update |
-|---------------------|---------------------|
-| Fewer than ~5 | At most 1–2 pages |
-| More than 3 pages seem needed | Stop and reconsider before broad changes |
+| Change scope | Expected wiki scope |
+|--------------|---------------------|
+| Fewer than about 5 source files | At most 1–2 pages |
+| More than 3 pages appear affected | Reconsider before broad edits |
 
-- Avoid touching `quickstart.md` unless top-level product behavior, setup, or navigation changed.
+Avoid `quickstart.md` unless top-level behavior, setup, or navigation changed.
 
-### No-op updates
+### Pre-noop skip (before discovery)
 
-If there are no relevant source, workflow, product, or existing-doc changes since the last successful run **and** the wiki is already accurate:
+OpenWiki 0.2's CLI can skip the agent before discovery when an update has no meaningful repository change. Portable runs should do the same after gathering git context:
 
-- **Do not edit files.**
-- **Do not update** `.last-update.json`.
-- Tell the user the wiki is already current.
+Skip the update run when all of these are true:
 
-Updates may be a no-op. This is correct behavior.
+1. Prior metadata has a `gitHead`.
+2. The worktree is clean aside from `openwiki/.last-update.json`.
+3. Either `HEAD == gitHead`, or every path changed since `gitHead` is under `openwiki/`.
 
----
+Do **not** skip when:
 
-## Chat mode
+- prior `gitHead` is missing
+- the worktree has non-metadata changes
+- any non-`openwiki/` path changed since `gitHead`
+- the user explicitly asked for a documentation change in this turn
 
-- Answer the user's message directly.
-- Do **not** create or update OpenWiki documentation unless the user explicitly asks.
-- If the user asks to initialize or update the wiki, switch to init or update mode, or mention the optional OpenWiki CLI.
+The helper emits this as `pre-noop` with either `skip — <reason>` or `run — <reason>`.
 
-### OpenWiki CLI reference (when user asks)
+### Post-discovery no-op
+
+If the run proceeds and no relevant changes affect an already accurate wiki:
+
+- Do not edit generated pages.
+- Do not update `.last-update.json`.
+- Report that the wiki is current.
+
+Both pre-noop skip and post-discovery no-op are correct update behavior.
+
+## Chat
+
+- Answer directly.
+- Read `openwiki/` first; inspect source when the wiki is insufficient or the user asks for source-level evidence.
+- Do not modify documentation unless explicitly asked.
+- If the user requests repository initialization or maintenance, run init/update or mention:
 
 | Command | Behavior |
 |---------|----------|
-| `openwiki` | Interactive chat |
-| `openwiki "message"` | Send message, keep chat open |
-| `openwiki --init [message]` | Initialize documentation |
-| `openwiki --update [message]` | Update existing documentation |
-| `openwiki -p "message"` | One-shot, print output, exit |
-| `openwiki --modelId <id>` | Select model for run |
-| `openwiki --help` | Usage and options |
+| `openwiki` | Interactive code-mode chat for the current repository |
+| `openwiki "message"` | Send a code-mode message and keep chat open |
+| `openwiki code --init [message]` | Initialize repository documentation |
+| `openwiki code --update [message]` | Update repository documentation |
+| `openwiki --init [message]` | Initialize repository documentation; bare init defaults to code mode |
+| `openwiki --update [message]` | Update repository documentation; bare update defaults to code mode |
+| `openwiki -p "message"` | One-shot output |
+| `openwiki --modelId <id>` | Select a model for the run |
+| `openwiki --help` | Print current usage |
 
-Run `openwiki --help` when possible. If unavailable, answer from the table and note help could not be verified live.
+Run `openwiki --help` when possible if the user asks about CLI behavior.
 
----
+## Git context helper
 
-## Git context commands
-
-Run from the repository root at the start of init/update.
-
-### Always
-
-```bash
-git status --short
-git rev-parse HEAD
-git diff --name-status HEAD
-```
-
-### Init, or update with no prior metadata
-
-```bash
-git log --max-count=20 --name-status --oneline
-```
-
-### Update — when `.last-update.json` has `gitHead`
-
-```bash
-git log <gitHead>..HEAD --name-status --oneline
-```
-
-### Update — when no `gitHead` but `updatedAt` exists
-
-```bash
-git log --since "<updatedAt ISO timestamp>" --name-status --oneline
-```
-
-### Update — no prior metadata
-
-Emit: "No prior OpenWiki update timestamp was found." Then use the init-style recent-20 log.
-
-Use helper scripts from the **installed skill directory** with **cwd set to the target repository**:
+Prefer the installed skill helper. It emits compact RTK-inspired context instead of raw command dumps:
 
 ```bash
 cd /path/to/target-repo
@@ -148,4 +149,37 @@ bash /path/to/installed-skill/scripts/gather-git-context.sh init
 bash /path/to/installed-skill/scripts/gather-git-context.sh update
 ```
 
-Or run equivalent commands below manually.
+Typical output sections:
+
+| Section | Meaning |
+|---------|---------|
+| `head` | Current `HEAD` SHA |
+| `prior` | Previous `gitHead`, `updatedAt`, or `none` |
+| `pre-noop` | Update-only skip/run assessment |
+| `status` | Porcelain branch + changed paths, grouped when dense |
+| `log …` | Recent or since-last-update commits with capped file lists |
+| `worktree` | Staged and unstaged name-status paths |
+
+Defaults can be overridden with `OPENWIKI_GIT_LOG_LIMIT_INIT`, `OPENWIKI_GIT_LOG_LIMIT_UPDATE`, `OPENWIKI_GIT_MAX_FILES_PER_COMMIT`, and `OPENWIKI_GIT_MAX_SUBJECT`.
+
+If the helper is unavailable, gather equivalent evidence manually with:
+
+```bash
+git --no-pager rev-parse HEAD
+git --no-pager status --porcelain=v1 -b --untracked-files=all
+git --no-pager log --max-count=15 --name-status --pretty=format:'%h %s (%ar) <%an>'
+git --no-pager diff --name-status HEAD
+git --no-pager diff --cached --name-status HEAD
+```
+
+For update with prior `gitHead`, replace the log command with:
+
+```bash
+git --no-pager log <gitHead>..HEAD --name-status --pretty=format:'%h %s (%ar) <%an>'
+```
+
+For update with only `updatedAt`:
+
+```bash
+git --no-pager log --since "<updatedAt ISO timestamp>" --name-status --pretty=format:'%h %s (%ar) <%an>'
+```

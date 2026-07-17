@@ -5,6 +5,8 @@
 # commits with capped file lists, and name-status worktree diffs. In update
 # mode, also emits an upstream-style pre-noop assessment.
 #
+# Pure bash — no Python required.
+#
 # Run from the TARGET REPOSITORY root:
 #   cd /path/to/target-repo
 #   bash /path/to/installed-skill/scripts/gather-git-context.sh init
@@ -20,6 +22,7 @@ set -euo pipefail
 
 MODE="${1:-}"
 METADATA_FILE="${2:-openwiki/.last-update.json}"
+METADATA_BASENAME=".last-update.json"
 
 if [[ "$MODE" != "init" && "$MODE" != "update" ]]; then
   echo "Usage: $0 <init|update> [metadata-file]" >&2
@@ -27,37 +30,346 @@ if [[ "$MODE" != "init" && "$MODE" != "update" ]]; then
   exit 1
 fi
 
+LOG_LIMIT_INIT="${OPENWIKI_GIT_LOG_LIMIT_INIT:-15}"
+LOG_LIMIT_UPDATE="${OPENWIKI_GIT_LOG_LIMIT_UPDATE:-25}"
+MAX_FILES_PER_COMMIT="${OPENWIKI_GIT_MAX_FILES_PER_COMMIT:-10}"
+MAX_SUBJECT="${OPENWIKI_GIT_MAX_SUBJECT:-100}"
+
 git_out() {
   git --no-pager "$@" 2>/dev/null || true
 }
 
-json_field() {
+# Extract a top-level JSON string field without Python.
+# Accepts only simple "key": "value" string fields.
+json_string_field() {
   local file="$1"
   local field="$2"
+  local line
 
   if [[ ! -f "$file" ]]; then
     return 0
   fi
 
-  python3 -c "
-import json
-import sys
-
-try:
-    with open(sys.argv[1], encoding='utf-8') as handle:
-        data = json.load(handle)
-    value = data.get(sys.argv[2], '')
-    if isinstance(value, str):
-        print(value)
-except Exception:
-    pass
-" "$file" "$field" 2>/dev/null || true
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    if [[ "$line" =~ \"${field}\"[[:space:]]*:[[:space:]]*\"([^\"]*)\" ]]; then
+      printf '%s\n' "${BASH_REMATCH[1]}"
+      return 0
+    fi
+  done <"$file"
 }
 
-LOG_LIMIT_INIT="${OPENWIKI_GIT_LOG_LIMIT_INIT:-15}"
-LOG_LIMIT_UPDATE="${OPENWIKI_GIT_LOG_LIMIT_UPDATE:-25}"
-MAX_FILES_PER_COMMIT="${OPENWIKI_GIT_MAX_FILES_PER_COMMIT:-10}"
-MAX_SUBJECT="${OPENWIKI_GIT_MAX_SUBJECT:-100}"
+emit() {
+  local label="$1"
+  local body="$2"
+
+  body="${body#"${body%%[![:space:]]*}"}"
+  body="${body%"${body##*[![:space:]]}"}"
+  [[ -z "$body" ]] && return 0
+  printf '%s\n%s\n' "$label" "$body"
+}
+
+truncate_text() {
+  local text="$1"
+  local width="$2"
+
+  if (( ${#text} <= width )); then
+    printf '%s' "$text"
+  else
+    printf '%s...' "${text:0:$((width - 3))}"
+  fi
+}
+
+status_path() {
+  local line="$1"
+  local path
+
+  if (( ${#line} < 4 )); then
+    printf '%s' "${line#"${line%%[![:space:]]*}"}"
+    return 0
+  fi
+
+  path="${line:3}"
+  path="${path#"${path%%[![:space:]]*}"}"
+  path="${path//\\//}"
+  if [[ "$path" == *" -> "* ]]; then
+    path="${path##* -> }"
+  fi
+  printf '%s' "$path"
+}
+
+is_metadata_path() {
+  local path="$1"
+  path="${path//\\//}"
+  [[ "$path" == "openwiki/${METADATA_BASENAME}" || "$path" == */"${METADATA_BASENAME}" ]]
+}
+
+is_metadata_status_line() {
+  is_metadata_path "$(status_path "$1")"
+}
+
+is_openwiki_path() {
+  local path="$1"
+  path="${path//\\//}"
+  path="${path#./}"
+  [[ "$path" == "openwiki" || "$path" == openwiki/* ]]
+}
+
+format_status() {
+  local porcelain="$1"
+  local line branch xy path top_dir shown extra
+  local -a lines=() file_lines=() out=() keys=() paths=()
+  local -A grouped=() by_dir=()
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    [[ -z "${line//[[:space:]]/}" ]] && continue
+    lines+=("$line")
+  done <<<"$porcelain"
+
+  if (( ${#lines[@]} == 0 )); then
+    printf 'clean'
+    return 0
+  fi
+
+  if [[ "${lines[0]}" == \#\#* ]]; then
+    branch="${lines[0]:3}"
+    branch="${branch#"${branch%%[![:space:]]*}"}"
+    out+=("* ${branch}")
+    file_lines=("${lines[@]:1}")
+  else
+    file_lines=("${lines[@]}")
+  fi
+
+  local -a filtered=()
+  for line in "${file_lines[@]+"${file_lines[@]}"}"; do
+    is_metadata_status_line "$line" && continue
+    filtered+=("$line")
+  done
+  file_lines=("${filtered[@]+"${filtered[@]}"}")
+
+  if (( ${#file_lines[@]} == 0 )); then
+    out+=("clean — nothing to commit")
+    printf '%s\n' "${out[@]}"
+    return 0
+  fi
+
+  for line in "${file_lines[@]}"; do
+    (( ${#line} < 4 )) && continue
+    xy="${line:0:2}"
+    path="${line:3}"
+    if [[ -z "${grouped[$xy]+x}" ]]; then
+      keys+=("$xy")
+      grouped["$xy"]="$path"
+    else
+      grouped["$xy"]+=$'\n'"$path"
+    fi
+  done
+
+  local IFS=$'\n'
+  # shellcheck disable=SC2207
+  keys=($(printf '%s\n' "${keys[@]}" | LC_ALL=C sort))
+  unset IFS
+
+  for xy in "${keys[@]}"; do
+    mapfile -t paths <<<"${grouped[$xy]}"
+    if (( ${#paths[@]} == 1 )); then
+      out+=("${xy} ${paths[0]}")
+      continue
+    fi
+
+    by_dir=()
+    for path in "${paths[@]}"; do
+      top_dir="${path%%/*}"
+      by_dir["$top_dir"]=$((${by_dir[$top_dir]:-0} + 1))
+    done
+
+    if (( ${#by_dir[@]} == 1 && ${#paths[@]} > 2 )); then
+      for top_dir in "${!by_dir[@]}"; do
+        out+=("${xy} ${top_dir}/ (${#paths[@]} files)")
+      done
+      continue
+    fi
+
+    shown=0
+    for path in "${paths[@]}"; do
+      if (( shown >= MAX_FILES_PER_COMMIT )); then
+        break
+      fi
+      out+=("${xy} ${path}")
+      shown=$((shown + 1))
+    done
+    extra=$((${#paths[@]} - shown))
+    if (( extra > 0 )); then
+      out+=("${xy} ... (+${extra} more)")
+    fi
+  done
+
+  printf '%s\n' "${out[@]}"
+}
+
+summarize_name_status() {
+  local block="$1"
+  local line status path
+  local -a out=()
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    [[ -z "${line//[[:space:]]/}" ]] && continue
+    [[ "$line" != *$'\t'* ]] && continue
+    status="${line%%$'\t'*}"
+    path="${line#*$'\t'}"
+    is_metadata_path "$path" && continue
+    out+=("${status} ${path}")
+  done <<<"$block"
+
+  if (( ${#out[@]} == 0 )); then
+    return 0
+  fi
+
+  if (( ${#out[@]} > MAX_FILES_PER_COMMIT )); then
+    printf '%s\n' "${out[@]:0:MAX_FILES_PER_COMMIT}"
+    printf '... (+%s more)' "$((${#out[@]} - MAX_FILES_PER_COMMIT))"
+  else
+    printf '%s\n' "${out[@]}"
+  fi
+}
+
+format_log() {
+  local raw="$1"
+  local chunk header files body current="" i
+  local -a chunks=() entries=()
+  local omitted=0 line
+
+  if [[ -z "${raw//[[:space:]]/}" ]]; then
+    printf '(no commits)'
+    return 0
+  fi
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    if [[ "$line" == "---COMMIT---" ]]; then
+      if [[ -n "${current//[[:space:]]/}" ]]; then
+        chunks+=("$current")
+      fi
+      current=""
+      continue
+    fi
+    if [[ -n "$current" ]]; then
+      current+=$'\n'"$line"
+    else
+      current="$line"
+    fi
+  done <<<"$raw"
+
+  if [[ -n "${current//[[:space:]]/}" ]]; then
+    chunks+=("$current")
+  fi
+
+  if [[ "$MODE" == "update" && ${#chunks[@]} -gt LOG_LIMIT_UPDATE ]]; then
+    omitted=$((${#chunks[@]} - LOG_LIMIT_UPDATE))
+    chunks=("${chunks[@]:0:LOG_LIMIT_UPDATE}")
+  fi
+
+  for chunk in "${chunks[@]+"${chunks[@]}"}"; do
+    header="$(printf '%s\n' "$chunk" | sed -n '1p')"
+    [[ -z "$header" ]] && continue
+    header="$(truncate_text "$header" "$MAX_SUBJECT")"
+    files="$(summarize_name_status "$(printf '%s\n' "$chunk" | sed '1d')")"
+    if [[ -n "$files" ]]; then
+      entries+=("${header}"$'\n'"${files}")
+    else
+      entries+=("$header")
+    fi
+  done
+
+  if (( ${#entries[@]} == 0 )); then
+    printf '(no commits)'
+    return 0
+  fi
+
+  body=""
+  for i in "${!entries[@]}"; do
+    if (( i > 0 )); then
+      body+=$'\n\n'
+    fi
+    body+="${entries[$i]}"
+  done
+  printf '%s' "$body"
+  if (( omitted > 0 )); then
+    printf '\n... (+%s older commits omitted)' "$omitted"
+  fi
+}
+
+format_worktree() {
+  local diff_text="$1"
+  local staged_text="$2"
+  local staged_summary diff_summary
+  local -a parts=()
+
+  staged_summary="$(summarize_name_status "$staged_text")"
+  diff_summary="$(summarize_name_status "$diff_text")"
+
+  if [[ -n "$staged_summary" ]]; then
+    parts+=("staged"$'\n'"$staged_summary")
+  fi
+  if [[ -n "$diff_summary" ]]; then
+    parts+=("unstaged"$'\n'"$diff_summary")
+  fi
+
+  if (( ${#parts[@]} == 0 )); then
+    printf 'clean'
+  else
+    printf '%s\n' "${parts[@]}"
+  fi
+}
+
+assess_pre_noop() {
+  local line path
+  local -a status_lines=() paths=()
+
+  if [[ -z "$GIT_HEAD" ]]; then
+    printf 'run — missing previous update git head'
+    return 0
+  fi
+
+  if [[ -z "$HEAD" ]]; then
+    printf 'run — missing current git head'
+    return 0
+  fi
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    [[ -z "${line//[[:space:]]/}" ]] && continue
+    [[ "$line" == \#\#* ]] && continue
+    is_metadata_status_line "$line" && continue
+    status_lines+=("$line")
+  done <<<"$STATUS"
+
+  if (( ${#status_lines[@]} > 0 )); then
+    printf 'run — worktree has changes'
+    return 0
+  fi
+
+  if [[ "$HEAD" == "$GIT_HEAD" ]]; then
+    printf 'skip — head unchanged and worktree clean'
+    return 0
+  fi
+
+  while IFS= read -r path || [[ -n "$path" ]]; do
+    [[ -z "${path//[[:space:]]/}" ]] && continue
+    paths+=("$path")
+  done <<<"$CHANGED_PATHS"
+
+  if (( ${#paths[@]} == 0 )); then
+    printf 'skip — no non-openwiki commits since last update'
+    return 0
+  fi
+
+  for path in "${paths[@]}"; do
+    if ! is_openwiki_path "$path"; then
+      printf 'run — non-openwiki commits since last update'
+      return 0
+    fi
+  done
+
+  printf 'skip — only openwiki/ commits since last update'
+}
 
 HEAD="$(git_out rev-parse HEAD)"
 STATUS="$(git_out status --porcelain=v1 -b --untracked-files=all)"
@@ -74,8 +386,8 @@ if [[ "$MODE" == "init" ]]; then
   LOG_ARGS=(--max-count="$LOG_LIMIT_INIT")
 else
   if [[ -f "$METADATA_FILE" ]]; then
-    GIT_HEAD="$(json_field "$METADATA_FILE" gitHead)"
-    UPDATED_AT="$(json_field "$METADATA_FILE" updatedAt)"
+    GIT_HEAD="$(json_string_field "$METADATA_FILE" gitHead)"
+    UPDATED_AT="$(json_string_field "$METADATA_FILE" updatedAt)"
 
     if [[ -n "$GIT_HEAD" ]]; then
       LOG_ARGS=("${GIT_HEAD}..HEAD")
@@ -101,220 +413,12 @@ if [[ "$MODE" == "update" && -n "$GIT_HEAD" && -n "$HEAD" && "$GIT_HEAD" != "$HE
   CHANGED_PATHS="$(git_out diff --name-only "${GIT_HEAD}..HEAD")"
 fi
 
-export MODE HEAD STATUS DIFF STAGED LOG LOG_LABEL PRIOR GIT_HEAD CHANGED_PATHS
-export LOG_LIMIT_UPDATE MAX_FILES_PER_COMMIT MAX_SUBJECT
-
-python3 <<'PY'
-import os
-
-mode = os.environ["MODE"]
-head = os.environ.get("HEAD", "").strip()
-status = os.environ.get("STATUS", "")
-diff = os.environ.get("DIFF", "")
-staged = os.environ.get("STAGED", "")
-log = os.environ.get("LOG", "")
-log_label = os.environ.get("LOG_LABEL", "recent")
-prior = os.environ.get("PRIOR", "none")
-git_head = os.environ.get("GIT_HEAD", "").strip()
-changed_paths = os.environ.get("CHANGED_PATHS", "")
-log_limit_update = int(os.environ.get("LOG_LIMIT_UPDATE", "25"))
-max_files = int(os.environ.get("MAX_FILES_PER_COMMIT", "10"))
-max_subject = int(os.environ.get("MAX_SUBJECT", "100"))
-
-METADATA_BASENAME = ".last-update.json"
-
-
-def emit(label: str, body: str) -> None:
-    body = body.strip()
-    if not body:
-        return
-    print(f"{label}\n{body}")
-
-
-def truncate(text: str, width: int) -> str:
-    text = text.strip()
-    if len(text) <= width:
-        return text
-    return text[: width - 3] + "..."
-
-
-def status_path(line: str) -> str:
-    if len(line) < 4:
-        return line.strip()
-    path = line[3:].strip()
-    if " -> " in path:
-        path = path.split(" -> ", 1)[1]
-    return path.replace("\\", "/")
-
-
-def is_metadata_status_line(line: str) -> bool:
-    path = status_path(line)
-    return path == f"openwiki/{METADATA_BASENAME}" or path.endswith(
-        f"/{METADATA_BASENAME}"
-    )
-
-
-def is_openwiki_path(path: str) -> bool:
-    normalized = path.replace("\\", "/").lstrip("./")
-    return normalized == "openwiki" or normalized.startswith("openwiki/")
-
-
-def format_status(porcelain: str) -> str:
-    lines = [line for line in porcelain.splitlines() if line.strip()]
-    if not lines:
-        return "clean"
-
-    out: list[str] = []
-    if lines[0].startswith("##"):
-        out.append(f"* {lines[0][3:].strip()}")
-        file_lines = lines[1:]
-    else:
-        file_lines = lines
-
-    # Match upstream noop filtering: metadata churn is not meaningful worktree noise.
-    file_lines = [line for line in file_lines if not is_metadata_status_line(line)]
-
-    if not file_lines:
-        out.append("clean — nothing to commit")
-        return "\n".join(out)
-
-    grouped: dict[str, list[str]] = {}
-    for line in file_lines:
-        if len(line) < 4:
-            continue
-        grouped.setdefault(line[:2], []).append(line[3:])
-
-    for xy in sorted(grouped):
-        paths = grouped[xy]
-        if len(paths) == 1:
-            out.append(f"{xy} {paths[0]}")
-            continue
-
-        by_dir: dict[str, int] = {}
-        for path in paths:
-            by_dir[path.split("/", 1)[0]] = by_dir.get(path.split("/", 1)[0], 0) + 1
-
-        if len(by_dir) == 1 and len(paths) > 2:
-            only = next(iter(by_dir))
-            out.append(f"{xy} {only}/ ({len(paths)} files)")
-            continue
-
-        shown = paths[:max_files]
-        out.extend(f"{xy} {path}" for path in shown)
-        extra = len(paths) - len(shown)
-        if extra > 0:
-            out.append(f"{xy} ... (+{extra} more)")
-
-    return "\n".join(out)
-
-
-def summarize_name_status(block: str) -> str:
-    lines = [line for line in block.splitlines() if line.strip()]
-    if not lines:
-        return ""
-
-    out: list[str] = []
-    for line in lines:
-        parts = line.split("\t", 1)
-        if len(parts) != 2:
-            continue
-        status, path = parts
-        out.append(f"{status} {path}")
-
-    if len(out) > max_files:
-        kept = out[:max_files]
-        kept.append(f"... (+{len(out) - max_files} more)")
-        return "\n".join(kept)
-    return "\n".join(out)
-
-
-def format_log(raw: str) -> str:
-    if not raw.strip():
-        return "(no commits)"
-
-    chunks = [chunk.strip() for chunk in raw.split("---COMMIT---") if chunk.strip()]
-    tail_note = ""
-    if mode == "update" and len(chunks) > log_limit_update:
-        omitted = len(chunks) - log_limit_update
-        chunks = chunks[:log_limit_update]
-        tail_note = f"... (+{omitted} older commits omitted)"
-
-    entries: list[str] = []
-    for chunk in chunks:
-        lines = chunk.splitlines()
-        if not lines:
-            continue
-        header = truncate(lines[0], max_subject)
-        files = summarize_name_status("\n".join(lines[1:]))
-        entries.append(f"{header}\n{files}" if files else header)
-
-    body = "\n\n".join(entries)
-    if tail_note:
-        body = f"{body}\n{tail_note}" if body else tail_note
-    return body or "(no commits)"
-
-
-def filter_metadata_name_status(block: str) -> str:
-    kept: list[str] = []
-    metadata_suffix = f"openwiki/{METADATA_BASENAME}"
-    for line in block.splitlines():
-        if not line.strip():
-            continue
-        parts = line.split("\t", 1)
-        if len(parts) == 2:
-            path = parts[1].replace("\\", "/")
-            if path == metadata_suffix or path.endswith(f"/{metadata_suffix}"):
-                continue
-        kept.append(line)
-    return "\n".join(kept)
-
-
-def format_worktree(diff_text: str, staged_text: str) -> str:
-    parts: list[str] = []
-    staged_summary = summarize_name_status(filter_metadata_name_status(staged_text))
-    diff_summary = summarize_name_status(filter_metadata_name_status(diff_text))
-    if staged_summary:
-        parts.append(f"staged\n{staged_summary}")
-    if diff_summary:
-        parts.append(f"unstaged\n{diff_summary}")
-    return "\n".join(parts) if parts else "clean"
-
-
-def assess_pre_noop() -> str:
-    """Mirror upstream getUpdateNoopStatus for portable harnesses."""
-    if not git_head:
-        return "run — missing previous update git head"
-
-    if not head:
-        return "run — missing current git head"
-
-    status_lines = [
-        line
-        for line in status.splitlines()
-        if line.strip() and not line.startswith("##") and not is_metadata_status_line(line)
-    ]
-    if status_lines:
-        return "run — worktree has changes"
-
-    if head == git_head:
-        return "skip — head unchanged and worktree clean"
-
-    paths = [path.strip() for path in changed_paths.splitlines() if path.strip()]
-    if not paths:
-        return "skip — no non-openwiki commits since last update"
-
-    if any(not is_openwiki_path(path) for path in paths):
-        return "run — non-openwiki commits since last update"
-
-    return "skip — only openwiki/ commits since last update"
-
-
-print(f"openwiki git ctx | mode={mode}")
-emit("head", head or "(unknown)")
-emit("prior", prior)
-if mode == "update":
-    emit("pre-noop", assess_pre_noop())
-emit("status", format_status(status))
-emit(f"log {log_label}", format_log(log))
-emit("worktree", format_worktree(diff, staged))
-PY
+printf 'openwiki git ctx | mode=%s\n' "$MODE"
+emit "head" "${HEAD:-(unknown)}"
+emit "prior" "$PRIOR"
+if [[ "$MODE" == "update" ]]; then
+  emit "pre-noop" "$(assess_pre_noop)"
+fi
+emit "status" "$(format_status "$STATUS")"
+emit "log ${LOG_LABEL}" "$(format_log "$LOG")"
+emit "worktree" "$(format_worktree "$DIFF" "$STAGED")"

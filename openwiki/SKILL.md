@@ -2,7 +2,7 @@
 name: openwiki
 description: Generate, maintain, and query evidence-grounded repository documentation under openwiki/. Use when asked to initialize a code wiki, update OpenWiki docs after repository changes, document a codebase for humans and coding agents, answer questions from an existing repository wiki, or migrate repository wiki pages to OKF.
 license: MIT
-compatibility: Requires read/write access to the target repository, git, bash, and python3 for helper-script JSON parsing.
+compatibility: Requires read/write access to the target repository, git, and bash.
 metadata:
   author: jope35
   version: "2.0.0"

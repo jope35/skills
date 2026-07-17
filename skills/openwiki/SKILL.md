@@ -156,11 +156,6 @@ Relationship rules:
 
 More edge cases: [references/edge-cases.md](references/edge-cases.md).
 
-## Available scripts
-
-- **`scripts/gather-git-context.sh`** — Compact git context for init/update (`head`, `prior`, `pre-noop`, `status`, `log`, `worktree`)
-- **`scripts/snapshot-wiki-content.sh`** — SHA-256 fingerprint of `openwiki/` content excluding `.last-update.json`
-
 ## Git discipline
 
 Use git to explain why code exists as well as what it does.
@@ -170,14 +165,14 @@ Use git to explain why code exists as well as what it does.
 - Always account for uncommitted changes with `git status` and `git diff`.
 - Do not persist commit lists unless one commit explains an important decision.
 
-When shell is available, run the helpers with skill-root-relative paths and point them at the target repository:
+When shell is available:
 
 ```bash
 OPENWIKI_TARGET_REPO=/path/to/target-repo bash scripts/gather-git-context.sh init
 OPENWIKI_TARGET_REPO=/path/to/target-repo bash scripts/gather-git-context.sh update
 ```
 
-Equivalent: set cwd to the target repository and invoke `<skill-root>/scripts/gather-git-context.sh`. On update, honor a `pre-noop` value that starts with `skip`.
+On update, honor a `pre-noop` value that starts with `skip`.
 
 ## Init
 

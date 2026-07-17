@@ -52,29 +52,15 @@ The skill captures OpenWiki 0.2's portable code-mode contracts: `openwiki/INSTRU
 
 ```
 skills/
-├── openwiki/
-│   ├── SKILL.md          # Required frontmatter + instructions
-│   ├── LICENSE           # MIT, aligned with upstream openwiki
-│   ├── assets/           # OKF/quickstart templates and metadata schema
-│   ├── references/       # Progressive disclosure: mode and edge-case docs
-│   └── scripts/          # Git context + content snapshot helpers
-└── validate-plan/
-    └── SKILL.md          # Required frontmatter + instructions
+├── openwiki/          # SKILL.md, LICENSE, assets/, references/, scripts/
+└── validate-plan/     # SKILL.md
 ```
 
-Each skill directory name matches its `name` frontmatter field. Validate locally with the [skills-ref](https://github.com/agentskills/agentskills/tree/main/skills-ref) reference library:
-
 ```bash
-bash scripts/validate-skills.sh
-# or:
 npx --yes skills-ref validate ./skills/openwiki
 npx --yes skills-ref validate ./skills/validate-plan
-```
 
-OpenWiki helper scripts use skill-root-relative paths from the `skills/openwiki/` skill directory. Point them at the target repository with `OPENWIKI_TARGET_REPO`:
-
-```bash
-cd /path/to/installed-skill   # directory containing SKILL.md
+# OpenWiki helpers (from the installed skill directory):
 OPENWIKI_TARGET_REPO=/path/to/target-repo bash scripts/gather-git-context.sh update
 OPENWIKI_TARGET_REPO=/path/to/target-repo bash scripts/snapshot-wiki-content.sh
 ```

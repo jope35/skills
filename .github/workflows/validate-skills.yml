@@ -21,7 +21,7 @@ jobs:
         run: |
           set -euo pipefail
           mapfile -t skill_dirs < <(
-            find . -type f -name 'SKILL.md' ! -path './.git/*' -printf '%h\n' | sort -u
+            find ./skills -type f -name 'SKILL.md' -printf '%h\n' | sort -u
           )
           if (( ${#skill_dirs[@]} == 0 )); then
             echo "No SKILL.md packages found" >&2

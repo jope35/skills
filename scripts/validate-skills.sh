@@ -11,7 +11,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 mapfile -t skill_dirs < <(
-  find . -type f -name 'SKILL.md' ! -path './.git/*' -printf '%h\n' | sort -u
+  find ./skills -type f -name 'SKILL.md' -printf '%h\n' 2>/dev/null | sort -u
 )
 
 if (( ${#skill_dirs[@]} == 0 )); then

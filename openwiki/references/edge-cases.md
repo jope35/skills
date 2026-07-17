@@ -77,7 +77,7 @@ Do not split content into separate topic pages unless there is enough distinct, 
 - Missing file → treat as no previous update.
 - Invalid JSON or missing required fields (`updatedAt`, `command`, `model`) → treat as no previous successful code-mode update.
 - A missing `gitHead` is valid. Fall back to `updatedAt` for git scoping.
-- For update git context: prefer `gitHead`; fall back to `updatedAt`; if neither, use recent-20 log and note no prior timestamp.
+- For update git context: prefer `gitHead`; fall back to `updatedAt`; if neither, use the helper's recent log and note no prior timestamp.
 
 ### `command` field normalization
 
@@ -85,6 +85,20 @@ Do not split content into separate topic pages unless there is enough distinct, 
 - If prior metadata has an unexpected `command` value, still use it for context but do not let it block a valid update.
 
 ## Update-specific edge cases
+
+### Pre-noop skip before discovery
+
+Upstream OpenWiki 0.2 can skip the agent before discovery when an update has no meaningful repository change (`getUpdateNoopStatus` in `src/agent/utils.ts`). Portable runs should mirror that:
+
+Skip when:
+
+- prior metadata has `gitHead`
+- worktree is clean aside from `openwiki/.last-update.json`
+- and either `HEAD == gitHead`, or every changed path since `gitHead` is under `openwiki/`
+
+Do not skip when prior `gitHead` is missing, the worktree has other changes, any non-`openwiki/` path changed, or the user explicitly asked for a documentation change.
+
+The gather-git-context helper emits this as `pre-noop: skip — …` or `pre-noop: run — …`. On `skip`, stop before planning or writing.
 
 ### Docs impact plan required
 

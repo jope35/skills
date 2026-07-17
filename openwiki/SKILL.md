@@ -165,13 +165,15 @@ Use git to explain why code exists as well as what it does.
 - Always account for uncommitted changes with `git status` and `git diff`.
 - Do not persist commit lists unless one commit explains an important decision.
 
-When shell is available, run the helper from the installed skill directory with the target repository as cwd:
+When shell is available, run the compact helper from the installed skill directory with the target repository as cwd:
 
 ```bash
 cd /path/to/target-repo
 bash /path/to/installed-skill/scripts/gather-git-context.sh init
 bash /path/to/installed-skill/scripts/gather-git-context.sh update
 ```
+
+The helper emits short labeled sections (`head`, `prior`, `pre-noop`, `status`, `log`, `worktree`) instead of raw command dumps. On update, honor a `pre-noop` value that starts with `skip`.
 
 ## Init
 
@@ -189,17 +191,24 @@ Quickstart template: [assets/quickstart-skeleton.md](assets/quickstart-skeleton.
 ## Update
 
 1. Snapshot wiki content and inspect existing pages, backlog, brief, and metadata.
-2. Gather commits and working-tree changes since the previous successful run.
-3. Build an impact plan: `source change -> affected concept/page -> edit -> why`.
-4. Edit only pages that became inaccurate, incomplete, or misleading; remove obsolete claims.
-5. Promote a relevant backlog item when recent changes touch it or documentation budget permits.
-6. Make no formatting-only changes. Do not refresh source maps, generic watchlists, or commit lists unless materially wrong.
-7. Delete `_plan.md`.
-8. Update metadata only when wiki content changed.
+2. Gather compact git context with the helper and read the `pre-noop` assessment.
+3. If `pre-noop` says `skip` and the user did not request a specific documentation change, stop: report that the wiki is current without planning or writing.
+4. Otherwise gather commits and working-tree changes since the previous successful run.
+5. Build an impact plan: `source change -> affected concept/page -> edit -> why`.
+6. Edit only pages that became inaccurate, incomplete, or misleading; remove obsolete claims.
+7. Promote a relevant backlog item when recent changes touch it or documentation budget permits.
+8. Make no formatting-only changes. Do not refresh source maps, generic watchlists, or commit lists unless materially wrong.
+9. Delete `_plan.md`.
+10. Update metadata only when wiki content changed.
 
 Soft budget: fewer than about 5 changed source files normally means at most 1–2 changed wiki pages. Avoid `quickstart.md` unless top-level behavior, setup, or navigation changed. If more than 3 pages seem necessary, reconsider the impact plan before broad edits.
 
-A correct update may be a no-op. If no relevant source, workflow, product, or authoritative-doc changes affect an already accurate wiki, do not edit files or metadata; report that the wiki is current.
+A correct update may be a no-op in two ways:
+
+- **Pre-noop skip:** HEAD and worktree show no meaningful non-wiki change since the last recorded `gitHead`.
+- **Post-discovery no-op:** discovery finds no relevant source, workflow, product, or authoritative-doc change that affects an already accurate wiki.
+
+In both cases, do not edit files or metadata; report that the wiki is current.
 
 ## Chat
 

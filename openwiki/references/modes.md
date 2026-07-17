@@ -141,12 +141,11 @@ Run `openwiki --help` when possible if the user asks about CLI behavior.
 
 ## Git context helper
 
-Prefer the installed skill helper. It emits compact RTK-inspired context instead of raw command dumps:
+Prefer the skill helper. It emits compact RTK-inspired context instead of raw command dumps. Use skill-root-relative paths:
 
 ```bash
-cd /path/to/target-repo
-bash /path/to/installed-skill/scripts/gather-git-context.sh init
-bash /path/to/installed-skill/scripts/gather-git-context.sh update
+OPENWIKI_TARGET_REPO=/path/to/target-repo bash scripts/gather-git-context.sh init
+OPENWIKI_TARGET_REPO=/path/to/target-repo bash scripts/gather-git-context.sh update
 ```
 
 Typical output sections:

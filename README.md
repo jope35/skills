@@ -48,23 +48,30 @@ The skill captures OpenWiki 0.2's portable code-mode contracts: `openwiki/INSTRU
 
 **Output:** concrete plan edits, including a verification/validation section that explains how to test the plan's output.
 
-**Layout (Agent Skills spec):**
+**Layout ([Agent Skills specification](https://agentskills.io/specification)):**
 
 ```
 openwiki/
-├── SKILL.md
-├── LICENSE             # MIT, aligned with upstream openwiki
+├── SKILL.md          # Required frontmatter + instructions
+├── LICENSE           # MIT, aligned with upstream openwiki
 ├── assets/           # OKF/quickstart templates and metadata schema
-├── references/       # Detailed mode and edge-case docs
+├── references/       # Progressive disclosure: mode and edge-case docs
 └── scripts/          # Git context + content snapshot helpers
 validate-plan/
-└── SKILL.md
+└── SKILL.md          # Required frontmatter + instructions
 ```
 
-OpenWiki helper scripts live in the skill package. Run them from the **installed skill path** with **cwd set to the target repository**:
+Each skill directory name matches its `name` frontmatter field. Validate locally with the [skills-ref](https://github.com/agentskills/agentskills/tree/main/skills-ref) reference library:
 
 ```bash
-cd /path/to/target-repo
-bash /path/to/installed-skill/scripts/gather-git-context.sh update
-bash /path/to/installed-skill/scripts/snapshot-wiki-content.sh
+npx --yes skills-ref validate ./openwiki
+npx --yes skills-ref validate ./validate-plan
+```
+
+OpenWiki helper scripts use skill-root-relative paths from the `openwiki/` skill directory. Point them at the target repository with `OPENWIKI_TARGET_REPO`:
+
+```bash
+cd /path/to/installed-skill   # directory containing openwiki/SKILL.md
+OPENWIKI_TARGET_REPO=/path/to/target-repo bash scripts/gather-git-context.sh update
+OPENWIKI_TARGET_REPO=/path/to/target-repo bash scripts/snapshot-wiki-content.sh
 ```

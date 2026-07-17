@@ -7,12 +7,13 @@
 #
 # Pure bash — no Python required.
 #
-# Run from the TARGET REPOSITORY root:
-#   cd /path/to/target-repo
-#   bash /path/to/installed-skill/scripts/gather-git-context.sh init
-#   bash /path/to/installed-skill/scripts/gather-git-context.sh update
+# Invoke with a skill-root-relative path (Agent Skills convention). Either:
+#   OPENWIKI_TARGET_REPO=/path/to/target-repo bash scripts/gather-git-context.sh init
+# or run with cwd already set to the target repository:
+#   cd /path/to/target-repo && bash <skill-root>/scripts/gather-git-context.sh init
 #
 # Optional env:
+#   OPENWIKI_TARGET_REPO=/path/to/target-repo
 #   OPENWIKI_GIT_LOG_LIMIT_INIT=15
 #   OPENWIKI_GIT_LOG_LIMIT_UPDATE=25
 #   OPENWIKI_GIT_MAX_FILES_PER_COMMIT=10
@@ -24,10 +25,45 @@ MODE="${1:-}"
 METADATA_FILE="${2:-openwiki/.last-update.json}"
 METADATA_BASENAME=".last-update.json"
 
+usage() {
+  cat <<'EOF'
+Usage: scripts/gather-git-context.sh <init|update> [metadata-file]
+
+Gather compact git context for OpenWiki init/update runs.
+
+Arguments:
+  init|update     Run mode
+  metadata-file   Optional path to .last-update.json (default: openwiki/.last-update.json)
+
+Environment:
+  OPENWIKI_TARGET_REPO            Target repository root (optional if cwd is the repo)
+  OPENWIKI_GIT_LOG_LIMIT_INIT     Max commits for init (default: 15)
+  OPENWIKI_GIT_LOG_LIMIT_UPDATE   Max commits for update without prior head (default: 25)
+  OPENWIKI_GIT_MAX_FILES_PER_COMMIT  Max files listed per commit (default: 10)
+  OPENWIKI_GIT_MAX_SUBJECT        Max subject length (default: 100)
+
+Examples:
+  OPENWIKI_TARGET_REPO=/path/to/repo bash scripts/gather-git-context.sh init
+  OPENWIKI_TARGET_REPO=/path/to/repo bash scripts/gather-git-context.sh update
+EOF
+}
+
+if [[ "$MODE" == "-h" || "$MODE" == "--help" ]]; then
+  usage
+  exit 0
+fi
+
 if [[ "$MODE" != "init" && "$MODE" != "update" ]]; then
-  echo "Usage: $0 <init|update> [metadata-file]" >&2
-  echo "Run with cwd set to the target repository root." >&2
+  usage >&2
   exit 1
+fi
+
+if [[ -n "${OPENWIKI_TARGET_REPO:-}" ]]; then
+  if [[ ! -d "$OPENWIKI_TARGET_REPO" ]]; then
+    echo "Error: OPENWIKI_TARGET_REPO is not a directory: $OPENWIKI_TARGET_REPO" >&2
+    exit 1
+  fi
+  cd "$OPENWIKI_TARGET_REPO"
 fi
 
 LOG_LIMIT_INIT="${OPENWIKI_GIT_LOG_LIMIT_INIT:-15}"

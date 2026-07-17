@@ -2,16 +2,49 @@
 # Compute a SHA-256 fingerprint of all openwiki/ content except .last-update.json.
 # Mirrors upstream OpenWiki content-snapshot semantics for no-op detection.
 #
-# Run from the TARGET REPOSITORY root. Pass the script path from the
-# installed skill directory, for example:
-#   cd /path/to/target-repo
-#   bash /path/to/installed-skill/scripts/snapshot-wiki-content.sh
-#   bash /path/to/installed-skill/scripts/snapshot-wiki-content.sh openwiki
+# Invoke with a skill-root-relative path (Agent Skills convention). Either:
+#   OPENWIKI_TARGET_REPO=/path/to/target-repo bash scripts/snapshot-wiki-content.sh
+# or run with cwd already set to the target repository:
+#   cd /path/to/target-repo && bash <skill-root>/scripts/snapshot-wiki-content.sh
+#
+# Optional first arg: wiki directory (default: openwiki).
+# Optional env: OPENWIKI_TARGET_REPO=/path/to/target-repo
 #
 # Print the hex digest to stdout. Compare before and after init/update runs.
 # If identical, do not write openwiki/.last-update.json.
 
 set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage: scripts/snapshot-wiki-content.sh [wiki-dir]
+
+Compute a SHA-256 fingerprint of wiki content excluding .last-update.json.
+
+Arguments:
+  wiki-dir   Wiki directory relative to the target repo (default: openwiki)
+
+Environment:
+  OPENWIKI_TARGET_REPO   Target repository root (optional if cwd is the repo)
+
+Examples:
+  OPENWIKI_TARGET_REPO=/path/to/repo bash scripts/snapshot-wiki-content.sh
+  OPENWIKI_TARGET_REPO=/path/to/repo bash scripts/snapshot-wiki-content.sh openwiki
+EOF
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  usage
+  exit 0
+fi
+
+if [[ -n "${OPENWIKI_TARGET_REPO:-}" ]]; then
+  if [[ ! -d "$OPENWIKI_TARGET_REPO" ]]; then
+    echo "Error: OPENWIKI_TARGET_REPO is not a directory: $OPENWIKI_TARGET_REPO" >&2
+    exit 1
+  fi
+  cd "$OPENWIKI_TARGET_REPO"
+fi
 
 WIKI_DIR="${1:-openwiki}"
 METADATA_BASENAME=".last-update.json"

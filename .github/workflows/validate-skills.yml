@@ -1,0 +1,34 @@
+name: Validate Agent Skills
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+
+      - name: Validate every skill package
+        run: |
+          set -euo pipefail
+          mapfile -t skill_dirs < <(
+            find . -type f -name 'SKILL.md' ! -path './.git/*' -printf '%h\n' | sort -u
+          )
+          if (( ${#skill_dirs[@]} == 0 )); then
+            echo "No SKILL.md packages found" >&2
+            exit 1
+          fi
+          for dir in "${skill_dirs[@]}"; do
+            echo "::group::skills-ref validate ${dir}"
+            npx --yes skills-ref validate "$dir"
+            echo "::endgroup::"
+          done

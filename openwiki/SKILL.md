@@ -110,6 +110,17 @@ For substantial independent domains, optionally delegate read-only research:
 - Do not expose raw delegate reports in the user response.
 - A dedicated OKF migration may assign one writer per wiki directory, restricted to Markdown files directly inside that directory.
 
+### Dedicated OKF migration
+
+When the user explicitly requests an OKF migration:
+
+1. Inventory every wiki directory containing Markdown.
+2. Assign at most one writer to each directory, batching when concurrency is limited.
+3. Add or correct front matter only; preserve every Markdown body exactly.
+4. Do not create, delete, move, rename, or reorganize pages.
+5. Skip generated `index.md` files.
+6. Verify that every inventoried directory was processed.
+
 ## OKF graph requirements
 
 Every Markdown page created or substantively updated, including `_plan.md`, must begin with valid OKF YAML front matter containing:
@@ -179,7 +190,7 @@ Quickstart template: [assets/quickstart-skeleton.md](assets/quickstart-skeleton.
 1. Snapshot wiki content and inspect existing pages, backlog, brief, and metadata.
 2. Gather commits and working-tree changes since the previous successful run.
 3. Build an impact plan: `source change -> affected concept/page -> edit -> why`.
-4. Edit only pages that became inaccurate, incomplete, or misleading.
+4. Edit only pages that became inaccurate, incomplete, or misleading; remove obsolete claims.
 5. Promote a relevant backlog item when recent changes touch it or documentation budget permits.
 6. Make no formatting-only changes. Do not refresh source maps, generic watchlists, or commit lists unless materially wrong.
 7. Delete `_plan.md`.
@@ -205,14 +216,15 @@ Bare `openwiki --init` and `openwiki --update` also run in code mode in OpenWiki
 
 ## Metadata
 
-Use `openwiki/.last-update.json` only for successful init/update runs whose wiki content changed. Exclude metadata itself from pre/post content snapshots.
+Use `openwiki/.last-update.json` only for successful init/update runs whose wiki content changed. Exclude metadata itself from pre/post content snapshots. The OpenWiki CLI persists this metadata automatically; in another harness, the agent is responsible for the equivalent write.
 
 Required fields:
 
 - `updatedAt`: ISO-8601 timestamp
 - `command`: `init` or `update`
-- `gitHead`: `git rev-parse HEAD`
 - `model`: model or harness identifier
+
+New code-mode metadata should also record `gitHead` from `git rev-parse HEAD`. When reading prior metadata, accept a missing `gitHead` and fall back to `updatedAt` for git scoping.
 
 Schema: [assets/last-update.schema.json](assets/last-update.schema.json). Snapshot helper:
 

@@ -36,7 +36,7 @@ Adapted from the repository/code mode in [langchain-ai/openwiki 0.2.0](https://g
 - `update` — surgical refresh based on git changes since last run
 - `chat` — answer questions without modifying docs unless asked
 
-The skill follows OpenWiki 0.2's code-mode contracts: `openwiki/INSTRUCTIONS.md` is a preserved user brief, generated pages use OKF front matter and semantic links, `index.md` is not hand-edited, and normal wiki runs do not modify `AGENTS.md` or `CLAUDE.md`.
+The skill captures OpenWiki 0.2's portable code-mode contracts: `openwiki/INSTRUCTIONS.md` is a preserved user brief, generated pages use OKF front matter and semantic links, `index.md` is not hand-edited, and normal wiki runs do not modify `AGENTS.md` or `CLAUDE.md`.
 
 ## Validate Plan
 

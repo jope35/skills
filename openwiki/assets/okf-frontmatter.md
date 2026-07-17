@@ -19,7 +19,7 @@ Rules:
 - Use only these fields.
 - Write valid YAML values with no placeholders or explanatory comments.
 - Keep `description` specific enough for retrieval without repeating the page body.
-- Use a short concept kind that describes the page, such as `Repository Guide`, `Workflow`, `Domain Concept`, `Person`, `Project`, `Commitment Register`, `Source Evidence`, or `Reference`. Type values are not a fixed enum.
+- Use a short concept kind that describes the page, such as `Repository Guide`, `Architecture`, `Workflow`, `Domain Concept`, `API Endpoint`, `Data Model`, `Runbook`, or `Reference`. Type values are not a fixed enum.
 
 Example:
 

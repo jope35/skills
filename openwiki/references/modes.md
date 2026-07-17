@@ -51,7 +51,7 @@ Inspect existing `openwiki/` before editing.
 ### Workflow
 
 1. Read `quickstart.md`, including `## Backlog`, and `.last-update.json`.
-2. Gather commits since `gitHead`; fall back to `updatedAt`, then recent history.
+2. Gather commits since `gitHead`; when prior metadata has no `gitHead`, fall back to `updatedAt`, then recent history.
 3. Include uncommitted changes from `git status` and `git diff`.
 4. Build a docs impact plan:
 
@@ -62,7 +62,7 @@ Inspect existing `openwiki/` before editing.
 5. If a page cannot be tied to a relevant source, workflow, product, or authoritative-doc change, do not edit it.
 6. Optionally delegate read-only research for changed domains.
 7. Write `_plan.md` with only the planned surgical edits and affected relationships.
-8. Apply necessary factual and graph changes.
+8. Apply necessary factual and graph changes, including removing obsolete claims.
 9. Promote a backlog entry when recent changes touch it or spare documentation budget permits; remove the entry once documented.
 10. Delete `_plan.md`.
 11. Update `.last-update.json` only when the final content snapshot differs.

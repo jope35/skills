@@ -75,7 +75,8 @@ Do not split content into separate topic pages unless there is enough distinct, 
 ### Malformed or missing prior metadata
 
 - Missing file → treat as no previous update.
-- Invalid JSON or missing required fields (`updatedAt`, `command`, `gitHead`, `model`) → treat as no previous successful code-mode update.
+- Invalid JSON or missing required fields (`updatedAt`, `command`, `model`) → treat as no previous successful code-mode update.
+- A missing `gitHead` is valid. Fall back to `updatedAt` for git scoping.
 - For update git context: prefer `gitHead`; fall back to `updatedAt`; if neither, use recent-20 log and note no prior timestamp.
 
 ### `command` field normalization
@@ -158,6 +159,8 @@ Do not update `quickstart.md` unless:
 
 - Delegates are read-only by default; the primary agent owns all writes.
 - Exception: a dedicated OKF migration may assign one subagent per wiki directory and restrict each writer to Markdown files directly inside that directory.
+- During that migration, change front matter only; preserve bodies exactly, skip `index.md`, and do not create, delete, move, rename, or reorganize pages.
+- Inventory all wiki directories first and verify that each was processed.
 - Do not paste delegate output into user-facing responses.
 - Default to fewer delegates on large/unfamiliar repos (1–2), not more.
 - Use more delegates (3–4) only for small/medium repos with clearly independent domains or explicit user request.

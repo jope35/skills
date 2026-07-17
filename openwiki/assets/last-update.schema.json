@@ -3,7 +3,7 @@
   "title": "OpenWiki last update metadata",
   "description": "Written to openwiki/.last-update.json only when wiki content changes.",
   "type": "object",
-  "required": ["updatedAt", "command", "gitHead", "model"],
+  "required": ["updatedAt", "command", "model"],
   "properties": {
     "updatedAt": {
       "type": "string",

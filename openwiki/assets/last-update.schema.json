@@ -3,7 +3,7 @@
   "title": "OpenWiki last update metadata",
   "description": "Written to openwiki/.last-update.json only when wiki content changes.",
   "type": "object",
-  "required": ["updatedAt", "command"],
+  "required": ["updatedAt", "command", "gitHead", "model"],
   "properties": {
     "updatedAt": {
       "type": "string",
@@ -21,12 +21,12 @@
     },
     "model": {
       "type": "string",
-      "description": "Optional harness or model identifier, if available"
+      "description": "Model or harness identifier used for the successful run"
     }
   },
   "examples": [
     {
-      "updatedAt": "2026-07-05T20:00:00.000Z",
+      "updatedAt": "2026-07-17T06:00:00.000Z",
       "command": "init",
       "gitHead": "abc123def456789",
       "model": "agent"

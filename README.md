@@ -27,14 +27,16 @@ Compatible with [skills.sh](https://skills.sh) and 70+ agents (Cursor, Claude Co
 
 [`openwiki/SKILL.md`](./openwiki/SKILL.md) — Generate and maintain repository documentation for humans and coding agents.
 
-Adapted from [langchain-ai/openwiki](https://github.com/langchain-ai/openwiki). Harness- and model-agnostic.
+Adapted from the repository/code mode in [langchain-ai/openwiki 0.2.0](https://github.com/langchain-ai/openwiki/tree/0.2.0). Harness- and model-agnostic.
 
-**Triggers:** initialize wiki docs, update `openwiki/` documentation, document a codebase, create agent instructions from a repo.
+**Triggers:** initialize code wiki docs, update `openwiki/` after repository changes, document a codebase, answer from an existing repository wiki, migrate wiki pages to OKF.
 
 **Modes:**
 - `init` — build documentation from scratch
 - `update` — surgical refresh based on git changes since last run
 - `chat` — answer questions without modifying docs unless asked
+
+The skill follows OpenWiki 0.2's code-mode contracts: `openwiki/INSTRUCTIONS.md` is a preserved user brief, generated pages use OKF front matter and semantic links, `index.md` is not hand-edited, and normal wiki runs do not modify `AGENTS.md` or `CLAUDE.md`.
 
 ## Validate Plan
 
@@ -51,7 +53,7 @@ Adapted from [langchain-ai/openwiki](https://github.com/langchain-ai/openwiki). 
 ```
 openwiki/
 ├── SKILL.md
-├── assets/           # Templates and schemas
+├── assets/           # OKF/quickstart templates and metadata schema
 ├── references/       # Detailed mode and edge-case docs
 └── scripts/          # Git context + content snapshot helpers
 validate-plan/

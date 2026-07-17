@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Compute a SHA-256 fingerprint of openwiki/ content, excluding .last-update.json.
+# Compute a SHA-256 fingerprint of all openwiki/ content except .last-update.json.
 # Mirrors upstream OpenWiki content-snapshot semantics for no-op detection.
 #
 # Run from the TARGET REPOSITORY root. Pass the script path from the
@@ -24,17 +24,17 @@ fi
 
 {
   while IFS= read -r -d '' path; do
-  relative="${path#./}"
-  if [[ "$(basename "$path")" == "$METADATA_BASENAME" ]]; then
-    continue
-  fi
-  if [[ -d "$path" ]]; then
-    printf 'dir:%s\0' "$relative"
-  elif [[ -f "$path" ]]; then
-    printf 'file:%s\0' "$relative"
-    cat "$path"
-    printf '\0'
-  fi
+    relative="${path#./}"
+    if [[ "$(basename "$path")" == "$METADATA_BASENAME" ]]; then
+      continue
+    fi
+    if [[ -d "$path" ]]; then
+      printf 'dir:%s\0' "$relative"
+    elif [[ -f "$path" ]]; then
+      printf 'file:%s\0' "$relative"
+      cat "$path"
+      printf '\0'
+    fi
   done < <(
     find "$WIKI_DIR" \( -type f -o -type d \) -print0 2>/dev/null \
       | LC_ALL=C sort -z

@@ -53,12 +53,12 @@ section() {
   echo
 }
 
-section "git status --short" git status --short
-section "git rev-parse HEAD" git rev-parse HEAD
+section "git status --short" git --no-pager status --short
+section "git rev-parse HEAD" git --no-pager rev-parse HEAD
 
 if [[ "$MODE" == "init" ]]; then
   section "git log --max-count=20 --name-status --oneline" \
-    git log --max-count=20 --name-status --oneline
+    git --no-pager log --max-count=20 --name-status --oneline
 else
   if [[ -f "$METADATA_FILE" ]]; then
     GIT_HEAD="$(json_field "$METADATA_FILE" gitHead)"
@@ -66,22 +66,22 @@ else
 
     if [[ -n "$GIT_HEAD" ]]; then
       section "git log ${GIT_HEAD}..HEAD --name-status --oneline" \
-        git log "${GIT_HEAD}..HEAD" --name-status --oneline
+        git --no-pager log "${GIT_HEAD}..HEAD" --name-status --oneline
     elif [[ -n "$UPDATED_AT" ]]; then
       section "git log --since ${UPDATED_AT} --name-status --oneline" \
-        git log --since "$UPDATED_AT" --name-status --oneline
+        git --no-pager log --since "$UPDATED_AT" --name-status --oneline
     else
       echo "No prior OpenWiki update metadata was found."
       echo
       section "git log --max-count=20 --name-status --oneline" \
-        git log --max-count=20 --name-status --oneline
+        git --no-pager log --max-count=20 --name-status --oneline
     fi
   else
     echo "No prior OpenWiki update metadata was found."
     echo
     section "git log --max-count=20 --name-status --oneline" \
-      git log --max-count=20 --name-status --oneline
+      git --no-pager log --max-count=20 --name-status --oneline
   fi
 fi
 
-section "git diff --name-status HEAD" git diff --name-status HEAD
+section "git diff --name-status HEAD" git --no-pager diff --name-status HEAD

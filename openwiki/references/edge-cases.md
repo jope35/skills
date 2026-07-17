@@ -1,6 +1,13 @@
-# OpenWiki edge cases and quality rules
+# OpenWiki code-mode edge cases and quality rules
 
-All rules from [langchain-ai/openwiki `prompt.ts`](https://github.com/langchain-ai/openwiki/blob/main/src/agent/prompt.ts). Apply during init and update unless noted.
+These rules follow the repository output mode in [langchain-ai/openwiki 0.2.0 `prompt.ts`](https://github.com/langchain-ai/openwiki/blob/0.2.0/src/agent/prompt.ts).
+
+## Repository wiki brief
+
+- Read `openwiki/INSTRUCTIONS.md` before planning when it exists.
+- Treat it as user-authored control metadata, not generated documentation.
+- Do not rewrite it during routine init/update/chat runs.
+- Change it only when the user explicitly asks to alter repository wiki scope or priorities.
 
 ## Existing documentation
 
@@ -36,6 +43,25 @@ Do not split content into separate topic pages unless there is enough distinct, 
 - If a directory would contain only one short page, prefer a broader page or a heading in `quickstart.md`.
 - Include inline source-file references where they help readers verify or explore.
 - **Source Map sections are optional.** Add one only when it materially improves navigation. Prefer inline references for short pages.
+- Keep deferred areas in `quickstart.md` under `## Backlog`; do not create a separate backlog page.
+- Every backlog entry needs an area name, source anchor, and one-line reason.
+
+## OKF and concept graph
+
+- Every Markdown page created or substantively updated, including `_plan.md`, needs valid OKF front matter with `type`, `title`, `description`, and `tags`; `resource` is optional.
+- Do not add front matter fields outside that schema.
+- Correct front matter on pages already being substantively updated; do not churn untouched pages solely to normalize metadata.
+- Put concept links in prose that explains the evidence-backed relationship.
+- Quickstart navigation and generated index links do not count as semantic concept relationships.
+- When evidence supports it, connect a substantive concept to at least two other substantive concepts.
+- Merge unsupported or thin concepts rather than creating pages solely to increase graph density.
+- Before completion, verify internal links and ensure no concept is accidentally orphaned.
+
+## Generated indexes
+
+- OpenWiki 0.2 generates directory `index.md` files deterministically after a CLI run.
+- Do not create or hand-edit `index.md`.
+- In a harness without index generation, use `quickstart.md` for navigation and preserve existing indexes.
 
 ## Metadata edge cases
 
@@ -49,7 +75,7 @@ Do not split content into separate topic pages unless there is enough distinct, 
 ### Malformed or missing prior metadata
 
 - Missing file → treat as no previous update.
-- Invalid JSON or missing required fields (`updatedAt`, `command`, `model` in original schema) → treat as no previous update.
+- Invalid JSON or missing required fields (`updatedAt`, `command`, `gitHead`, `model`) → treat as no previous successful code-mode update.
 - For update git context: prefer `gitHead`; fall back to `updatedAt`; if neither, use recent-20 log and note no prior timestamp.
 
 ### `command` field normalization
@@ -112,15 +138,14 @@ Do not update `quickstart.md` unless:
 
 - Default max: **8 pages** on initial run.
 - Tiny repos: `quickstart.md` + 0–2 supporting pages is often enough.
+- Do not silently drop domains because of the page budget; add concise backlog entries.
 
 ## Agent instruction file edge cases
 
-- **Top-level only.** Never edit nested `AGENTS.md` or `CLAUDE.md`.
-- **Both files exist:** duplicate the same OpenWiki section in both.
-- **Neither exists:** create `/AGENTS.md` with only the OpenWiki section.
-- **Section already correct:** do not edit for formatting normalization.
-- **Stale section:** replace the existing OpenWiki section; do not add a second one.
-- **User opts out:** skip all instruction-file edits if the user explicitly requests it.
+- Do not create or edit root or nested `AGENTS.md` or `CLAUDE.md` during routine wiki runs.
+- OpenWiki's code-mode CLI owns the `<!-- OPENWIKI:START -->` / `<!-- OPENWIKI:END -->` root-agent snippets.
+- Existing OpenWiki references are context only; leave them untouched unless the user explicitly asks for a separate agent-instruction change.
+- Never add a second OpenWiki section to compensate for a stale CLI-managed block.
 
 ## Security edge cases
 
@@ -131,7 +156,8 @@ Do not update `quickstart.md` unless:
 
 ## Delegation edge cases
 
-- Delegates are **read-only**. Any write by a delegate is a violation — the primary agent owns all writes.
+- Delegates are read-only by default; the primary agent owns all writes.
+- Exception: a dedicated OKF migration may assign one subagent per wiki directory and restrict each writer to Markdown files directly inside that directory.
 - Do not paste delegate output into user-facing responses.
 - Default to fewer delegates on large/unfamiliar repos (1–2), not more.
 - Use more delegates (3–4) only for small/medium repos with clearly independent domains or explicit user request.
@@ -140,6 +166,7 @@ Do not update `quickstart.md` unless:
 
 - `_plan.md` is **temporary** and must not appear in the final wiki.
 - Create it after discovery, before final writes.
+- Give it OKF front matter and include intended relationship triples.
 - Delete it before completing the run.
 - If no delete capability exists, use shell: `rm -f openwiki/_plan.md`
 

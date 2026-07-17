@@ -1,0 +1,9 @@
+[
+  {
+    "name": "databricks-docs",
+    "repo": "https://github.com/databricks-solutions/ai-dev-kit.git",
+    "ref": "main",
+    "sourcePath": "databricks-skills/databricks-docs",
+    "targetPath": "databricks-docs"
+  }
+]

@@ -1,5 +1,14 @@
 # skills
 
+<!-- skills:index:start -->
+## Included skills (3)
+
+- [`databricks-docs`](./databricks-docs/SKILL.md) - Databricks documentation reference via llms.txt index. Use when other skills do not cover a topic, looking up unfamiliar Databricks features, or needing authoritative docs on APIs, configurations, or platform capabilities.
+- [`openwiki`](./openwiki/SKILL.md) - Generate and maintain repository documentation for humans and coding agents under openwiki/. Use when asked to initialize wiki docs, update existing openwiki documentation, document a codebase, create agent instructions from a repo, refresh docs after code changes, or run OpenWiki init/update/chat workflows.
+- [`validate-plan`](./validate-plan/SKILL.md) - Adversarially validate plans, specs, RFCs, architecture proposals, migration designs, and other design documents. Use when asked to stress-test assumptions, verify a plan against official docs or code evidence, identify design risks, or produce concrete plan changes that increase robustness.
+
+<!-- skills:index:end -->
+
 A collection of portable [Agent Skills](https://agentskills.io) for any harness.
 
 [![skills.sh](https://skills.sh/b/jope35/skills)](https://skills.sh/jope35/skills)
@@ -13,12 +22,16 @@ npx skills add jope35/skills --skill openwiki
 # Install Validate Plan to your agent(s)
 npx skills add jope35/skills --skill validate-plan
 
+# Install Databricks Docs to your agent(s)
+npx skills add jope35/skills --skill databricks-docs
+
 # List available skills in this repo
 npx skills add jope35/skills --list
 
 # Use without installing (pipe to your agent)
 npx skills use jope35/skills --skill openwiki
 npx skills use jope35/skills --skill validate-plan
+npx skills use jope35/skills --skill databricks-docs
 ```
 
 Compatible with [skills.sh](https://skills.sh) and 70+ agents (Cursor, Claude Code, Codex, OpenCode, Windsurf, and others).
@@ -48,9 +61,43 @@ The skill captures OpenWiki 0.2's portable code-mode contracts: `openwiki/INSTRU
 
 **Output:** concrete plan edits, including a verification/validation section that explains how to test the plan's output.
 
+## Databricks Docs
+
+[`databricks-docs/SKILL.md`](./databricks-docs/SKILL.md) — Databricks documentation reference via the official `llms.txt` index.
+
+Vendored from [`databricks-solutions/ai-dev-kit`](https://github.com/databricks-solutions/ai-dev-kit/tree/main/databricks-skills/databricks-docs). Source metadata is recorded in [`databricks-docs/.source.json`](./databricks-docs/.source.json).
+
+## External skill sync
+
+External skills are direct-vendored into this repo so installers see ordinary skill directories. To add or update external skills:
+
+1. Add an entry to [`external-skills.json`](./external-skills.json):
+
+   ```json
+   {
+     "name": "skill-name",
+     "repo": "https://github.com/org/repo.git",
+     "ref": "main",
+     "sourcePath": "path/to/skill",
+     "targetPath": "skill-name"
+   }
+   ```
+
+2. Run:
+
+   ```bash
+   uv run --locked scripts/sync-external-skills.py
+   ```
+
+The sync script copies each listed skill, writes `.source.json` with the upstream commit, and refreshes the generated `Included skills` count at the top of this README.
+
+GitHub Actions also runs this sync on a schedule every 11 hours and opens an automated pull request when vendored skills change.
+
 **Layout (Agent Skills spec):**
 
 ```
+databricks-docs/
+└── SKILL.md
 openwiki/
 ├── SKILL.md
 ├── LICENSE             # MIT, aligned with upstream openwiki
@@ -59,6 +106,9 @@ openwiki/
 └── scripts/          # Git context + content snapshot helpers
 validate-plan/
 └── SKILL.md
+external-skills.json  # External vendoring manifest
+scripts/
+└── sync-external-skills.py
 ```
 
 OpenWiki helper scripts live in the skill package. Run them from the **installed skill path** with **cwd set to the target repository**:

@@ -7,16 +7,13 @@
 #
 # Pure bash — no Python required.
 #
-# Run from the TARGET REPOSITORY root:
-#   cd /path/to/target-repo
-#   bash /path/to/installed-skill/scripts/gather-git-context.sh init
-#   bash /path/to/installed-skill/scripts/gather-git-context.sh update
+# Usage:
+#   OPENWIKI_TARGET_REPO=/path/to/repo bash scripts/gather-git-context.sh <init|update>
+#   # or: cwd = target repo, invoke via <skill-root>/scripts/...
 #
-# Optional env:
-#   OPENWIKI_GIT_LOG_LIMIT_INIT=15
-#   OPENWIKI_GIT_LOG_LIMIT_UPDATE=25
-#   OPENWIKI_GIT_MAX_FILES_PER_COMMIT=10
-#   OPENWIKI_GIT_MAX_SUBJECT=100
+# Optional env: OPENWIKI_TARGET_REPO, OPENWIKI_GIT_LOG_LIMIT_INIT (15),
+# OPENWIKI_GIT_LOG_LIMIT_UPDATE (25), OPENWIKI_GIT_MAX_FILES_PER_COMMIT (10),
+# OPENWIKI_GIT_MAX_SUBJECT (100).
 
 set -euo pipefail
 
@@ -26,9 +23,10 @@ METADATA_BASENAME=".last-update.json"
 
 if [[ "$MODE" != "init" && "$MODE" != "update" ]]; then
   echo "Usage: $0 <init|update> [metadata-file]" >&2
-  echo "Run with cwd set to the target repository root." >&2
   exit 1
 fi
+
+[[ -n "${OPENWIKI_TARGET_REPO:-}" ]] && cd "$OPENWIKI_TARGET_REPO"
 
 LOG_LIMIT_INIT="${OPENWIKI_GIT_LOG_LIMIT_INIT:-15}"
 LOG_LIMIT_UPDATE="${OPENWIKI_GIT_LOG_LIMIT_UPDATE:-25}"

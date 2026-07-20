@@ -25,9 +25,9 @@ Compatible with [skills.sh](https://skills.sh) and 70+ agents (Cursor, Claude Co
 
 ## OpenWiki
 
-[`openwiki/SKILL.md`](./openwiki/SKILL.md) — Generate and maintain repository documentation for humans and coding agents.
+[`skills/openwiki/SKILL.md`](./skills/openwiki/SKILL.md) — Generate and maintain repository documentation for humans and coding agents.
 
-Adapted from the repository/code mode in [langchain-ai/openwiki 0.2.0](https://github.com/langchain-ai/openwiki/tree/0.2.0) at [`d4e94ab`](https://github.com/langchain-ai/openwiki/commit/d4e94ab513ab13908c6b61346b23dc17bbd59b1f). Harness- and model-agnostic. Licensed under [MIT](openwiki/LICENSE), consistent with upstream.
+Adapted from the repository/code mode in [langchain-ai/openwiki 0.2.0](https://github.com/langchain-ai/openwiki/tree/0.2.0) at [`d4e94ab`](https://github.com/langchain-ai/openwiki/commit/d4e94ab513ab13908c6b61346b23dc17bbd59b1f). Harness- and model-agnostic. Licensed under [MIT](skills/openwiki/LICENSE), consistent with upstream.
 
 **Triggers:** initialize code wiki docs, update `openwiki/` after repository changes, document a codebase, answer from an existing repository wiki, migrate wiki pages to OKF.
 
@@ -40,7 +40,7 @@ The skill captures OpenWiki 0.2's portable code-mode contracts: `openwiki/INSTRU
 
 ## Validate Plan
 
-[`validate-plan/SKILL.md`](./validate-plan/SKILL.md) — Adversarially validate plans, specs, RFCs, and design documents, then return small, meaningful changes that improve robustness.
+[`skills/validate-plan/SKILL.md`](./skills/validate-plan/SKILL.md) — Adversarially validate plans, specs, RFCs, and design documents, then return small, meaningful changes that improve robustness.
 
 **Triggers:** validate a plan, stress-test a spec, challenge design assumptions, de-risk an RFC, verify architecture or rollout assumptions against code and official docs.
 
@@ -48,23 +48,19 @@ The skill captures OpenWiki 0.2's portable code-mode contracts: `openwiki/INSTRU
 
 **Output:** concrete plan edits, including a verification/validation section that explains how to test the plan's output.
 
-**Layout (Agent Skills spec):**
+**Layout ([Agent Skills specification](https://agentskills.io/specification)):**
 
 ```
-openwiki/
-├── SKILL.md
-├── LICENSE             # MIT, aligned with upstream openwiki
-├── assets/           # OKF/quickstart templates and metadata schema
-├── references/       # Detailed mode and edge-case docs
-└── scripts/          # Git context + content snapshot helpers
-validate-plan/
-└── SKILL.md
+skills/
+├── openwiki/          # SKILL.md, LICENSE, assets/, references/, scripts/
+└── validate-plan/     # SKILL.md
 ```
-
-OpenWiki helper scripts live in the skill package. Run them from the **installed skill path** with **cwd set to the target repository**:
 
 ```bash
-cd /path/to/target-repo
-bash /path/to/installed-skill/scripts/gather-git-context.sh update
-bash /path/to/installed-skill/scripts/snapshot-wiki-content.sh
+npx --yes skills-ref validate ./skills/openwiki
+npx --yes skills-ref validate ./skills/validate-plan
+
+# OpenWiki helpers (from the installed skill directory):
+OPENWIKI_TARGET_REPO=/path/to/target-repo bash scripts/gather-git-context.sh update
+OPENWIKI_TARGET_REPO=/path/to/target-repo bash scripts/snapshot-wiki-content.sh
 ```

@@ -165,15 +165,14 @@ Use git to explain why code exists as well as what it does.
 - Always account for uncommitted changes with `git status` and `git diff`.
 - Do not persist commit lists unless one commit explains an important decision.
 
-When shell is available, run the compact helper from the installed skill directory with the target repository as cwd:
+When shell is available:
 
 ```bash
-cd /path/to/target-repo
-bash /path/to/installed-skill/scripts/gather-git-context.sh init
-bash /path/to/installed-skill/scripts/gather-git-context.sh update
+OPENWIKI_TARGET_REPO=/path/to/target-repo bash scripts/gather-git-context.sh init
+OPENWIKI_TARGET_REPO=/path/to/target-repo bash scripts/gather-git-context.sh update
 ```
 
-The helper emits short labeled sections (`head`, `prior`, `pre-noop`, `status`, `log`, `worktree`) instead of raw command dumps. On update, honor a `pre-noop` value that starts with `skip`.
+On update, honor a `pre-noop` value that starts with `skip`.
 
 ## Init
 
@@ -239,8 +238,7 @@ New code-mode metadata should also record `gitHead` from `git rev-parse HEAD`. W
 Schema: [assets/last-update.schema.json](assets/last-update.schema.json). Snapshot helper:
 
 ```bash
-cd /path/to/target-repo
-bash /path/to/installed-skill/scripts/snapshot-wiki-content.sh
+OPENWIKI_TARGET_REPO=/path/to/target-repo bash scripts/snapshot-wiki-content.sh
 ```
 
 ## Completion checklist

@@ -1,7 +1,7 @@
 ---
 name: validate-plan
 description: Adversarially validate plans, specs, RFCs, architecture proposals, migration designs, and other design documents. Use when asked to stress-test assumptions, verify a plan against official docs or code evidence, identify design risks, or produce concrete plan changes that increase robustness.
-license: MIT
+license: Apache-2.0
 compatibility: Requires read access to the target document and repository context. Benefits from web/MCP access such as Exa, Context7, Ref, or direct documentation fetches, especially for vendor APIs and current platform behavior.
 metadata:
   author: jope35

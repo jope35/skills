@@ -1,17 +1,10 @@
 #!/usr/bin/env bash
-# Compute a SHA-256 fingerprint of all openwiki/ content except .last-update.json.
-# Mirrors upstream OpenWiki content-snapshot semantics for no-op detection.
-#
-# Run from the TARGET REPOSITORY root. Pass the script path from the
-# installed skill directory, for example:
-#   cd /path/to/target-repo
-#   bash /path/to/installed-skill/scripts/snapshot-wiki-content.sh
-#   bash /path/to/installed-skill/scripts/snapshot-wiki-content.sh openwiki
-#
-# Print the hex digest to stdout. Compare before and after init/update runs.
-# If identical, do not write openwiki/.last-update.json.
+# SHA-256 fingerprint of openwiki/ content except .last-update.json.
+# Usage: OPENWIKI_TARGET_REPO=/path/to/repo bash scripts/snapshot-wiki-content.sh [wiki-dir]
 
 set -euo pipefail
+
+[[ -n "${OPENWIKI_TARGET_REPO:-}" ]] && cd "$OPENWIKI_TARGET_REPO"
 
 WIKI_DIR="${1:-openwiki}"
 METADATA_BASENAME=".last-update.json"

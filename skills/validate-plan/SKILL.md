@@ -44,14 +44,14 @@ Action: <what the user must do next, or none>
 
 Send one line per field and nothing else. Keep the reply under 50 words. Do not add a preamble, a summary of the plan, or the list of changes.
 
-In the second line, count one change for each finding that you fixed. In the third line, n counts the assumptions you cannot test.
+In the second line, count one change for each finding that you fixed. In the third line, n counts the assumptions that you cannot test.
 
 ## Report file
 
 Write this file when the user asks for the report, or when the document is read-only. It contains:
 
 1. The verdict and the dominant risks.
-2. The change set. For each change, give the location and the exact new text. Add the reason, the evidence, the test that proves it, and the severity.
+2. The change set. For each change, give the location and the exact new text. Add the reason, the evidence, the test that proves the change, and the severity.
 3. The assumption ledger: assumption, status, evidence, risk if wrong, plan update.
 4. Missing evidence: the sources that were unavailable, the affected assumptions, and whether the gap blocks the work.
 5. Open questions that block confidence.
@@ -85,7 +85,7 @@ Before you test an external claim, find the documentation and research tools in 
 - Use Exa, a direct fetch, official product docs, release notes, and `llms.txt` indexes for current platform behavior.
 - Match the docs to the version, cloud, region, deployment model, and product tier in the plan.
 - When a tool, URL, or source is unavailable, blocked, or inconclusive, mark the affected assumption as an evidence gap. Do not skip it.
-- Fetch the full page for a decisive claim. A search snippet is a lead, not evidence.
+- Fetch the full page for a claim that decides a finding. A search snippet is a lead, not evidence.
 
 ## `llms.txt` workflow
 
@@ -95,7 +95,7 @@ When a plan depends on docs on a known domain, try the LLM-friendly index first:
 2. Fetch `https://<docs-host>/llms.txt`.
 3. Treat the result as an index. Select the links that match the assumption.
 4. Fetch the most relevant pages. Prefer the markdown variant when the site offers one.
-5. Cite the exact page, the section, and the claim it proves or disproves.
+5. Cite the exact page, the section, and the claim that it proves or disproves.
 6. If `/llms.txt` is missing or incomplete, fall back to official docs search, Context7, Ref, Exa, or a known URL.
 
 Use official docs before blogs, generated summaries, forum posts, or marketing pages. For a high-risk claim, find two independent official sources when you can.
@@ -104,13 +104,13 @@ Use official docs before blogs, generated summaries, forum posts, or marketing p
 
 ### 1. Identify the target and the scope
 
-Find the document. When several documents apply, start with the highest-level plan and read the supporting documents you need. Note these items:
+Find the document. When several documents apply, start with the highest-level plan and read the supporting documents that you need. Note these items:
 
 - The path or title.
 - The intended outcome.
 - The systems and teams touched.
 - The versions, environments, vendors, APIs, and deployment targets.
-- The constraints the author assumes: time, compatibility, cost, latency, permissions, compliance.
+- The constraints that the author assumes: time, compatibility, cost, latency, permissions, compliance.
 
 When the target is missing or ambiguous, ask for it before you start.
 
@@ -127,7 +127,7 @@ Read the document and write each assumption, explicit or implicit, in a ledger. 
 - Performance and cost: latency, throughput, capacity, caching, billing, limits.
 - Product behavior: workflows, adoption, failure modes, edge cases.
 
-Order the ledger by blast radius and uncertainty. Test the riskiest claims first, and continue after you find the first problem.
+Order the ledger by blast radius and uncertainty. Blast radius is the impact if the assumption fails. Test the riskiest claims first. Continue after you find the first problem.
 
 ### 3. Gather evidence against the plan
 
@@ -147,7 +147,7 @@ Read the full page or source file when a snippet decides a finding.
 Ask these questions about the plan:
 
 - What must be true for the plan to work, and where is that unproven?
-- Which dependency breaks the design when the vendor or API behaves differently?
+- Which dependency breaks the design when the vendor or the API behaves differently?
 - Which step is irreversible, hard to roll back, or unsafe after a partial failure?
 - What happens on a retry, a duplicate event, out-of-order data, a stale cache, a timeout, a rate limit, or a regional outage?
 - What data can be lost, leaked, corrupted, processed twice, or made inconsistent?
@@ -162,7 +162,7 @@ Each significant finding becomes one or more edits:
 
 - Replace a wrong assumption with text that the evidence supports.
 - Add a missing constraint, version requirement, or compatibility note.
-- Add a preflight test, a proof of concept, or a spike question.
+- Add a preflight test, a proof of concept, or a spike question (a time-boxed investigation).
 - Add a rollout gate, a feature flag, a rollback step, or a kill switch.
 - Add a migration safeguard, an idempotency rule, a replay plan, or a query that proves the data.
 - Add observability: metrics, logs, traces, dashboards, alerts, SLOs, thresholds.
@@ -209,8 +209,8 @@ Scope the section to the output of the plan, not to general quality wishes.
 ## Citation rules
 
 - Cite local evidence with a path and a line number.
-- Cite external evidence with the URL, the page title or section, and the claim it supports.
-- When a tool is unavailable, name the evidence you cannot test. Mark the assumption as Unsupported or Conflicting evidence.
+- Cite external evidence with the URL, the page title or section, and the claim that it supports.
+- When a tool is unavailable, name the evidence that you cannot test. Mark the assumption as Unsupported or Conflicting evidence.
 - Do not cite a search snippet as final evidence when the full page is available.
 
 ## Pre-completion checklist
@@ -219,11 +219,11 @@ Scope the section to the output of the plan, not to general quality wishes.
 - [ ] The ledger lists the explicit and implicit assumptions.
 - [ ] High-risk assumptions are tested against the source or official docs.
 - [ ] The evidence matches the version in the plan.
-- [ ] An `llms.txt` index was tried for each relevant docs site.
+- [ ] You tried an `llms.txt` index for each relevant docs site.
 - [ ] Blocked or unavailable sources appear as evidence gaps.
-- [ ] The findings distinguish verified, nullified, unsupported, and underspecified assumptions.
+- [ ] The findings separate verified, nullified, unsupported, and underspecified assumptions.
 - [ ] The document contains the edits, not only the findings.
 - [ ] Each edit is small and keeps the sound intent of the plan.
-- [ ] The plan has a verification section that proves its output works.
+- [ ] The plan has a verification section that proves that its output works.
 - [ ] The chat reply is the four-field status and nothing else.
 - [ ] A report file exists only when the user asked for one.

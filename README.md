@@ -13,12 +13,16 @@ npx skills add jope35/skills --skill openwiki
 # Install Validate Plan to your agent(s)
 npx skills add jope35/skills --skill validate-plan
 
+# Install Web Research to your agent(s)
+npx skills add jope35/skills --skill web-research
+
 # List available skills in this repo
 npx skills add jope35/skills --list
 
 # Use without installing (pipe to your agent)
 npx skills use jope35/skills --skill openwiki
 npx skills use jope35/skills --skill validate-plan
+npx skills use jope35/skills --skill web-research
 ```
 
 Compatible with [skills.sh](https://skills.sh) and 70+ agents (Cursor, Claude Code, Codex, OpenCode, Windsurf, and others).
@@ -48,17 +52,33 @@ The skill captures OpenWiki 0.2's portable code-mode contracts: `openwiki/INSTRU
 
 **Output:** concrete plan edits, including a verification/validation section that explains how to test the plan's output.
 
-**Layout ([Agent Skills specification](https://agentskills.io/specification)):**
+## Web Research
+
+[`skills/web-research/SKILL.md`](./skills/web-research/SKILL.md) — Research a question across several web sources, synthesize the findings, and produce one cited report.
+
+Adapted from the web research example in [langchain-ai/deepagents `libs/code`](https://github.com/langchain-ai/deepagents/tree/main/libs/code/examples/skills/web-research) at [`2ac7d41`](https://github.com/langchain-ai/deepagents/commit/2ac7d4153398889100d5fd163ab4a122633862b5). Harness- and model-agnostic. Licensed under [MIT](skills/web-research/LICENSE), consistent with upstream.
+
+**Triggers:** research a topic online, find current information, compare options across sources, survey what several sources say, produce a cited research report.
+
+**Process:** write `research_[topic_name]/research_plan.md`, run 2-5 non-overlapping subtopics as delegated researchers (up to 3 in parallel) that save findings to files, then synthesize from those files into a cited answer.
+
+**Output:** a direct answer first, then integrated findings with citations, conflicting evidence and gaps, and a source list.
+
+## Layout
+
+([Agent Skills specification](https://agentskills.io/specification))
 
 ```
 skills/
 ├── openwiki/          # SKILL.md, LICENSE, assets/, references/, scripts/
-└── validate-plan/     # SKILL.md
+├── validate-plan/     # SKILL.md
+└── web-research/      # SKILL.md, LICENSE
 ```
 
 ```bash
 npx --yes skills-ref validate ./skills/openwiki
 npx --yes skills-ref validate ./skills/validate-plan
+npx --yes skills-ref validate ./skills/web-research
 
 # OpenWiki helpers (from the installed skill directory):
 OPENWIKI_TARGET_REPO=/path/to/target-repo bash scripts/gather-git-context.sh update

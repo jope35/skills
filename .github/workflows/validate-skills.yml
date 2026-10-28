@@ -16,3 +16,4 @@ jobs:
       - run: |
           npx --yes skills-ref validate ./skills/openwiki
           npx --yes skills-ref validate ./skills/validate-plan
+          npx --yes skills-ref validate ./skills/web-research

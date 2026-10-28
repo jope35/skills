@@ -8,7 +8,7 @@ A collection of portable [Agent Skills](https://agentskills.io) for any harness.
 
 | Skill | What it does | Use it for |
 | --- | --- | --- |
-| [validate-plan](./skills/validate-plan/SKILL.md) | Adversarially validates plans, specs, and design documents, then returns concrete edits. | Stress-testing a spec, de-risking an RFC, checking assumptions against code and docs. |
+| [validate-plan](./skills/validate-plan/SKILL.md) | Adversarially validates plans, specs, and design documents, then edits them to reduce risk. | Stress-testing a spec, de-risking an RFC, checking assumptions against code and docs. |
 | [web-research](./skills/web-research/SKILL.md) | Researches a question across several web sources and synthesizes one cited report. | Finding current information, comparing options, surveying what sources say. |
 
 Both are harness- and model-agnostic: they map intents to whatever search, fetch, file, and delegation capabilities the current harness provides.
@@ -48,13 +48,13 @@ Adapted from the web research example in [langchain-ai/deepagents `libs/code`](h
 
 ## Validate Plan
 
-[`skills/validate-plan/SKILL.md`](./skills/validate-plan/SKILL.md) — Adversarially validate plans, specs, RFCs, and design documents, then return small, meaningful changes that improve robustness.
+[`skills/validate-plan/SKILL.md`](./skills/validate-plan/SKILL.md) — Adversarially validate plans, specs, RFCs, and design documents, then edit them so that a wrong assumption fails visibly.
 
 **Triggers:** validate a plan, stress-test a spec, challenge design assumptions, de-risk an RFC, verify architecture or rollout assumptions against code and official docs.
 
 **Evidence sources:** local source/docs, Exa, Context7, Ref, official documentation, standards, and `llms.txt` documentation indexes where available. Blocked or unavailable evidence checks are flagged instead of silently skipped.
 
-**Output:** concrete plan edits, including a verification/validation section that explains how to test the plan's output.
+**Output:** the edited document, including a verification and validation section that explains how to test the plan's output. The chat gets a four-line status: verdict, file and change counts, top risk, and the action the user must take. A full report with the change set and evidence ledger is written next to the document only when asked.
 
 ## Layout
 

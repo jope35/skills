@@ -42,6 +42,8 @@ Adapted from the web research example in [langchain-ai/deepagents `libs/code`](h
 
 **Triggers:** research a topic online, find current information, compare options across sources, survey what several sources say, produce a cited research report.
 
+**Search:** uses a search MCP server (Exa, Jina, Tavily, Brave Search, Perplexity, Firecrawl, or similar) when the harness provides one, because it searches, reads, and reranks in one place. Falls back to the built-in web search, and names the fallback in the research plan.
+
 **Process:** write `research_[topic_name]/research_plan.md`, run 2-5 non-overlapping subtopics as delegated researchers (up to 3 in parallel) that save findings to files, then synthesize from those files into a cited answer.
 
 **Output:** a direct answer first, then integrated findings with citations, conflicting evidence and gaps, and a source list.

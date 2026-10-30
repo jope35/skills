@@ -69,8 +69,8 @@ Rules for using a search MCP server:
 ### 1. Plan before searching
 
 1. Analyze the question. Break it into 2-9 distinct subtopics that do not overlap.
-2. Create a research folder in the working directory, named `research_[topic_name]/`. Keep every working file inside it. The repository root stays clean.
-3. Write `research_[topic_name]/research_plan.md`. It contains:
+2. Create a research folder in the working directory, named `docs/research/<research_topic>/`. Keep every working file inside it. The repository root stays clean.
+3. Write `docs/research/<research_topic>/research_plan.md`. It contains:
    - The main research question, in one sentence.
    - The subtopics, in investigation order.
    - The evidence that each subtopic must produce.
@@ -84,7 +84,7 @@ Size the plan to the question. Use 1-2 subtopics for a simple fact check. Use on
 For each subtopic, give the researcher a brief that is complete on its own:
 
 - A specific question with no unresolved acronyms.
-- The output file path, `research_[topic_name]/findings_[subtopic].md`.
+- The output file path, `docs/research/<research_topic>/findings_[subtopic].md`.
 - A budget of 3-9 searches.
 - The search and fetch tools to use, taken from the plan's mapping.
 - The instruction to record facts, short quotes, dates, and source URLs, and to note what you cannot confirm.
@@ -93,9 +93,9 @@ Use this template:
 
 ```
 Research [SPECIFIC TOPIC]. Use the search tools named in
-research_[topic_name]/research_plan.md, and prefer the search MCP server when
+docs/research/<research_topic>/research_plan.md, and prefer the search MCP server when
 the plan names one. Search the web and read the most authoritative pages you
-find. Save your findings to research_[topic_name]/findings_[subtopic].md.
+find. Save your findings to docs/research/<research_topic>/findings_[subtopic].md.
 Include key facts, short supporting quotes, publication dates, and source URLs.
 Flag anything that you cannot confirm. Use at most 5 searches.
 ```
@@ -108,7 +108,7 @@ Run up to 3 researchers in parallel when the harness supports it. Do not give tw
 2. Read each findings file before you write anything. Read from local paths, not from URLs. Use the fetch capability for pages. Never use a local file reader for a page.
 3. Reconcile the evidence. When sources disagree, report the disagreement and the stronger source. Do not pick one source silently. When a subtopic came back thin, say so.
 4. Answer the original question directly. Then support the answer with the integrated findings and the cited sources.
-5. Write `research_[topic_name]/research_report.md` only when the user asked for a report, or when the answer is too long for the chat.
+5. Write `docs/research/<research_topic>/research_report.md` only when the user asked for a report, or when the answer is too long for the chat.
 
 Stop when the plan's questions are answered. A search beyond the budget needs a named gap that it closes.
 
@@ -145,12 +145,12 @@ Keep the report free of process narration. The plan and findings files are the a
 
 ## Pre-completion checklist
 
-- [ ] `research_[topic_name]/research_plan.md` exists and names subtopics that do not overlap.
+- [ ] `docs/research/<research_topic>/research_plan.md` exists and names subtopics that do not overlap.
 - [ ] The plan names the search and fetch tools, and the findings files show that the preferred search MCP server was used, or why it was not.
 - [ ] Every planned subtopic has a findings file, or you explain why it does not.
 - [ ] Each findings file records sources with URLs and dates.
 - [ ] The answer opens with the direct answer, not with the method.
 - [ ] Every claim that matters carries a citation that you read.
 - [ ] You report conflicting evidence and gaps. You do not smooth them over.
-- [ ] `research_report.md` exists only if the user asked for one or the answer outgrew the chat.
+- [ ] `docs/research/<research_topic>/research_report.md` exists only if the user asked for one or the answer outgrew the chat.
 - [ ] No invented URLs, numbers, or quotes appear anywhere in the output.

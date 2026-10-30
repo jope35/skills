@@ -41,7 +41,7 @@ If search or fetch access is unavailable, stop and report the limitation. Do not
 
 ### 1. Plan before searching
 
-1. Analyze the question. Break it into 2-5 distinct subtopics that do not overlap.
+1. Analyze the question. Break it into 2-9 distinct subtopics that do not overlap.
 2. Create a research folder in the working directory, named `research_[topic_name]/`. Keep every working file inside it. The repository root stays clean.
 3. Write `research_[topic_name]/research_plan.md`. It contains:
    - The main research question, in one sentence.
@@ -49,7 +49,7 @@ If search or fetch access is unavailable, stop and report the limitation. Do not
    - The evidence that each subtopic must produce.
    - The way that the findings will combine into an answer.
 
-Size the plan to the question. Use 1-2 subtopics for a simple fact check. Use one subtopic for each comparison element, 3 at most. Use 3-5 subtopics for a broad investigation. A plan that repeats the user's sentence without splitting it is not a plan.
+Size the plan to the question. Use 1-2 subtopics for a simple fact check. Use one subtopic for each comparison element, 3 at most. Use 3-9 subtopics for a broad investigation. A plan that repeats the user's sentence without splitting it is not a plan.
 
 ### 2. Delegate or run each subtopic
 
@@ -57,7 +57,7 @@ For each subtopic, give the researcher a brief that is complete on its own:
 
 - A specific question with no unresolved acronyms.
 - The output file path, `research_[topic_name]/findings_[subtopic].md`.
-- A budget of 3-5 searches.
+- A budget of 3-9 searches.
 - The instruction to record facts, short quotes, dates, and source URLs, and to note what you cannot confirm.
 
 Use this template:
